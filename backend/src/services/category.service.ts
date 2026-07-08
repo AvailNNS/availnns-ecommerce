@@ -28,3 +28,17 @@ export const getCategories = async () => {
 
   return categories;
 };
+
+export const updateCategory = async (
+  id: string,
+  data: any
+) => {
+  return await Category.findByIdAndUpdate(id, data, {
+    new: true,
+    runValidators: true,
+  });
+};
+
+export const deleteCategory = async (id: string) => {
+  return await Category.findByIdAndDelete(id);
+};

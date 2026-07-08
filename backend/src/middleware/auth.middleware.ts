@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+const JWT_SECRET = process.env.JWT_SECRET || "dev_jwt_secret";
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
@@ -27,7 +29,7 @@ const authMiddleware = (
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET!
+      JWT_SECRET
     ) as {
       id: string;
       role: string;

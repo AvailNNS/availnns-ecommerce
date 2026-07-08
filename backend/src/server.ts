@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import cors from "cors";
 import notFound from "./middleware/notFound.middleware";
 import errorHandler from "./middleware/error.middleware";
-
 import connectDB from "./config/db";
 import routes from "./routes";
 
