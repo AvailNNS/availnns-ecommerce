@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   createCoupon,
   getCoupons,
+  updateCoupon,
   deleteCoupon,
   applyCoupon,
 } from "../controllers/coupon.controller";
@@ -36,6 +37,14 @@ router.get(
   authMiddleware,
   authorize("admin"),
   getCoupons
+);
+
+// Update Coupon
+router.put(
+  "/:id",
+  authMiddleware,
+  authorize("admin"),
+  updateCoupon
 );
 
 

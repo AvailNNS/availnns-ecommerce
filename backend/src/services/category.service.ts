@@ -42,3 +42,22 @@ export const updateCategory = async (
 export const deleteCategory = async (id: string) => {
   return await Category.findByIdAndDelete(id);
 };
+
+export const getCategoryTree = async () => {
+  const categories = await Category.find()
+    .lean();
+
+  const buildTree = (parentId: any = null): any[] => {
+    return categories
+      .filter(
+        (category: any) =>
+          String(category.parent) === String(parentId)
+      )
+      .map((category: any) => ({
+        ...category,
+        children: buildTree(category._id),
+      }));
+  };
+
+  return buildTree(null);
+};

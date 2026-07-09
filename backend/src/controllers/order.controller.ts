@@ -366,4 +366,64 @@ export const updateOrderStatus = async(
 };
 
 
- 
+ // ===============================
+// CANCEL ORDER
+// ===============================
+
+export const cancelOrder = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
+  try {
+
+    const userId = (req as any).user._id;
+
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: userId,
+    });
+
+
+    if (!order) {
+      res.status(404).json({
+        success:false,
+        message:"Order not found",
+      });
+      return;
+    }
+
+
+    if (order.orderStatus !== "pending") {
+      res.status(400).json({
+        success:false,
+        message:"Order cannot be cancelled now",
+      });
+      return;
+    }
+
+
+    order.orderStatus = "cancelled";
+
+    await order.save();
+
+
+    res.status(200).json({
+      success:true,
+      message:"Order cancelled successfully",
+      order,
+    });
+
+
+  } catch(error:any) {
+
+    res.status(500).json({
+      success:false,
+      message:"Cancel order failed",
+      error:error.message,
+    });
+
+  }
+
+};

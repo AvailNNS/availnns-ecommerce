@@ -110,3 +110,23 @@ export const remove = async (
     });
   }
 };
+
+export const getTree = async (
+  _req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const categories = await categoryService.getCategoryTree();
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+
+  } catch(error:any) {
+    res.status(500).json({
+      success:false,
+      message:error.message,
+    });
+  }
+};

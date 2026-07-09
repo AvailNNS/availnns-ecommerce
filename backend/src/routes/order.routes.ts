@@ -4,6 +4,7 @@ import {
   createOrder,
   getMyOrders,
   getOrderById,
+  cancelOrder,
   updateOrderStatus,
 } from "../controllers/order.controller";
 
@@ -36,6 +37,12 @@ router.get(
   "/:id",
   authMiddleware,
   getOrderById
+);
+// Cancel Order
+router.put(
+  "/:id/cancel",
+  authMiddleware,
+  cancelOrder
 );
 
 

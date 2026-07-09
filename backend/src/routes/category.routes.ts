@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   create,
   getAll,
+  getTree,
   update,
   remove,
 } from "../controllers/category.controller";
@@ -19,6 +20,7 @@ const router = Router();
 
 // Public Routes
 router.get("/", getAll);
+router.get("/tree", getTree);
 
 // Create Category
 router.post(

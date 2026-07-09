@@ -283,8 +283,54 @@ export const applyCoupon = async(
 
   });
 
-
  }
+};
 
+// ===============================
+// UPDATE COUPON (ADMIN)
+// ===============================
+
+export const updateCoupon = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
+  try {
+
+    const coupon = await Coupon.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+
+    if (!coupon) {
+      res.status(404).json({
+        success:false,
+        message:"Coupon not found",
+      });
+      return;
+    }
+
+
+    res.status(200).json({
+      success:true,
+      message:"Coupon updated successfully",
+      coupon,
+    });
+
+
+  } catch(error:any) {
+
+    res.status(500).json({
+      success:false,
+      message:"Coupon update failed",
+      error:error.message,
+    });
+
+  }
 
 };
