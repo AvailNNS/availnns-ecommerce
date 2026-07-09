@@ -523,9 +523,9 @@ export const getFeaturedProducts = async(
 
     const products = await Product.find({
 
-      featured:true,
+      isFeatured:true,
 
-      status:"active",
+      isPublished:true,
 
     })
 
@@ -570,8 +570,35 @@ export const getFeaturedProducts = async(
 
 };
 
+// ===============================
+// BEST SELLER PRODUCTS
+// ===============================
 
+export const getBestSellerProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const products = await Product.find({
+      isBestSeller: true,
+      isPublished: true,
+    })
+      .populate("category")
+      .limit(10)
+      .sort({ createdAt: -1 });
 
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch best seller products",
+      error: error.message,
+    });
+  }
+};
 
 // ===============================
 // RELATED PRODUCTS
@@ -616,7 +643,7 @@ export const getRelatedProducts = async(
         $ne:req.params.id,
       },
 
-      status:"active",
+      isPublished: true,
 
     })
 

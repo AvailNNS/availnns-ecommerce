@@ -23,6 +23,7 @@ export interface IProduct {
   images: IProductImage[];
 
   isFeatured: boolean;
+  isBestSeller: boolean;
   isPublished: boolean;
 
   rating: number;

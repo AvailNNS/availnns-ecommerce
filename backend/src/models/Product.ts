@@ -67,6 +67,11 @@ const productSchema = new Schema<IProduct>(
       default: false,
     },
 
+    isBestSeller: {
+     type: Boolean,
+     default: false,
+       },
+
     isPublished: {
       type: Boolean,
       default: true,

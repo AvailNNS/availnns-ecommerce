@@ -1,38 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-
-export interface IOrderItem {
-
-  product: mongoose.Types.ObjectId;
-
-  name:string;
-
-  image:string;
-
-  quantity:number;
-
-  price:number;
-
-}
-
-
-
-export interface IOrder extends Document {
-
-
-  user: mongoose.Types.ObjectId;
-
-
-  items:IOrderItem[];
-
-
-  shippingAddress:{
-
-    fullName:string;
-
-    phone:string;
-import mongoose, { Schema, Document } from "mongoose";
-
 export interface IOrderItem {
   product: mongoose.Types.ObjectId;
   name: string;
@@ -75,24 +42,53 @@ const OrderSchema = new Schema<IOrder>(
         product: {
           type: Schema.Types.ObjectId,
           ref: "Product",
+          required: true,
         },
-        name: String,
-        image: String,
-        quantity: Number,
-        price: Number,
+        name: {
+          type: String,
+          required: true,
+        },
+        image: {
+          type: String,
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
       },
     ],
     shippingAddress: {
-      fullName: String,
-      phone: String,
-      address: String,
-      city: String,
-      country: String,
+      fullName: {
+        type: String,
+        required: true,
+      },
+      phone: {
+        type: String,
+        required: true,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
     },
     paymentMethod: {
       type: String,
       enum: ["COD", "CARD", "BKASH", "NAGAD"],
       default: "COD",
+      required: true,
     },
     paymentInfo: {
       transactionId: {

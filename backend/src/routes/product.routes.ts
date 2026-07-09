@@ -8,6 +8,7 @@ import {
   updateStock,
   getLowStockProducts,
   getFeaturedProducts,
+  getBestSellerProducts,
   getRelatedProducts,
 } from "../controllers/product.controller";
 
@@ -68,6 +69,12 @@ router.get(
   "/featured",
   getFeaturedProducts
 );
+
+router.get(
+  "/best-sellers",
+  getBestSellerProducts
+);
+
 router.get(
   "/:id/related",
   getRelatedProducts
