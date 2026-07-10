@@ -27,7 +27,7 @@ app.get("/", (_req, res) => {
 });
 
 // API v1
-app.use("/api/v1", routes);
+app.use("/api", routes);
 
 // 404 Handler
 

@@ -26,9 +26,7 @@ export default function ShopPage(){
 
         const data = await getProducts();
 
-        setProducts(
-          data.products || []
-        );
+        setProducts(data || []);
 
 
       }catch(error){

@@ -7,11 +7,31 @@ import { AuthRequest } from "../middleware/auth.middleware";
 export const getMe = async (
   req: AuthRequest,
   res: Response
-) => {
-  res.json({
-    success: true,
-    user: req.user,
-  });
+): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id)
+      .select("-password");
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get user",
+      error: error.message,
+    });
+  }
 };
 // ===============================
 // UPDATE PROFILE

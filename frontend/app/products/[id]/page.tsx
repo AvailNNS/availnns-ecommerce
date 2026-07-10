@@ -1,51 +1,30 @@
 "use client";
 
-
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 import { getProductById } from "@/services/product.service";
 
 import { Product } from "@/types/product";
 
-
-
 export default function ProductDetailsPage({
   params,
-}:{
-  params:{
-    id:string;
-  }
-}){
+}: {
+  params: Promise<{
+    id: string;
+  }>;
+}) {
+  const resolvedParams = use(params);
+  const [product, setProduct] = useState<Product | null>(null);
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const data = await getProductById(resolvedParams.id);
 
-  const [product,setProduct] =
-    useState<Product | null>(null);
-
-
-
-  useEffect(()=>{
-
-
-    const fetchProduct = async()=>{
-
-      const data =
-        await getProductById(
-          params.id
-        );
-
-
-      setProduct(
-        data.product
-      );
-
-
+      setProduct(data.product);
     };
 
-
     fetchProduct();
-
-
-  },[params.id]);
+  }, [resolvedParams.id]);
 
 
 

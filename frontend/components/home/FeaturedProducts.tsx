@@ -25,7 +25,7 @@ export default function FeaturedProducts() {
         const data = await getFeaturedProducts();
 
         setProducts(
-          data.products || []
+          data || []
         );
 
 
