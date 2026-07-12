@@ -9,7 +9,12 @@ export interface Product {
   slug: string;
   description: string;
 
-  category: string;
+category:
+  | string
+  | {
+      _id: string;
+      name: string;
+    };
 
   brand: string;
 

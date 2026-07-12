@@ -12,12 +12,17 @@ const validate =
       });
 
       next();
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        errors: error.errors,
-      });
-    }
+    } catch (error:any) {
+
+  console.log("VALIDATION FULL ERROR:");
+  console.log(error);
+
+  res.status(400).json({
+    success:false,
+    errors:error.issues || error.message,
+  });
+
+}
   };
 
 export default validate;

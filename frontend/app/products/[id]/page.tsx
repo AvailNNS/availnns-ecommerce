@@ -1,41 +1,176 @@
 "use client";
 
+
 import { use, useEffect, useState } from "react";
 
-import { getProductById } from "@/services/product.service";
+
+import {
+  getProductById,
+  getRelatedProducts,
+  getNewArrivalProducts
+
+} from "@/services/product.service";
+
 
 import { Product } from "@/types/product";
 
+
+import ProductGallery from "@/components/product/ProductGallery";
+
+import ProductInfo from "@/components/product/ProductInfo";
+
+import ProductSection from "@/components/product/ProductSection";
+
+
+
+
+
 export default function ProductDetailsPage({
-  params,
-}: {
+
+  params
+
+}:{
+
   params: Promise<{
-    id: string;
+    id:string
   }>;
-}) {
+
+}){
+
+
+
   const resolvedParams = use(params);
-  const [product, setProduct] = useState<Product | null>(null);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      const data = await getProductById(resolvedParams.id);
 
-      setProduct(data.product);
+
+
+  const [product,setProduct] =
+    useState<Product | null>(null);
+
+
+
+  const [related,setRelated] =
+    useState<Product[]>([]);
+
+
+
+  const [recent,setRecent] =
+    useState<Product[]>([]);
+
+
+
+
+
+  useEffect(()=>{
+
+
+    const loadProduct = async()=>{
+
+
+      try{
+
+
+        // Get single product
+
+        const productData =
+          await getProductById(
+            resolvedParams.id
+          );
+
+
+
+        setProduct(
+          productData.product
+        );
+
+
+
+
+
+
+        // Get related products
+
+        const relatedData =
+          await getRelatedProducts(
+            resolvedParams.id
+          );
+
+
+
+        setRelated(
+          relatedData
+        );
+
+
+
+
+
+
+
+        // Get new arrivals
+
+        const newArrivalData =
+          await getNewArrivalProducts();
+
+
+
+        setRecent(
+
+          newArrivalData.filter(
+
+            (item:Product)=>
+
+              item._id !== resolvedParams.id
+
+          )
+
+        );
+
+
+
+
+
+      }catch(error){
+
+
+        console.log(
+          "Product details error:",
+          error
+        );
+
+
+      }
+
+
     };
 
-    fetchProduct();
-  }, [resolvedParams.id]);
+
+
+    loadProduct();
+
+
+
+  },[resolvedParams.id]);
+
+
+
 
 
 
 
   if(!product){
 
+
     return (
+
       <div className="p-10">
+
         Loading...
+
       </div>
+
     );
+
 
   }
 
@@ -43,34 +178,78 @@ export default function ProductDetailsPage({
 
 
 
+
+
   return (
 
-    <main className="py-10">
+    <main
+      className="
+      bg-gray-50
+      min-h-screen
+      py-10
+      "
+    >
 
 
-      <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10">
+
+      <div
+        className="
+        max-w-7xl
+        mx-auto
+        px-6
+        "
+      >
 
 
 
-        {/* Image */}
+        {/* Breadcrumb */}
 
-        <div className="bg-gray-100 rounded-xl h-96">
+        <p
+          className="
+          text-sm
+          text-gray-500
+          mb-6
+          "
+        >
+
+          Home / Products / {product.name}
+
+        </p>
 
 
-          {
-            product.images?.[0]?.url &&
 
-            <img
 
-              src={product.images[0].url}
 
-              alt={product.name}
 
-              className="w-full h-full object-cover rounded-xl"
 
-            />
+        {/* Product Details */}
 
-          }
+        <div
+          className="
+          grid
+          lg:grid-cols-2
+          gap-12
+          "
+        >
+
+
+
+          <ProductGallery
+
+            product={product}
+
+          />
+
+
+
+
+
+          <ProductInfo
+
+            product={product}
+
+          />
+
 
 
         </div>
@@ -78,52 +257,48 @@ export default function ProductDetailsPage({
 
 
 
-        {/* Details */}
-
-
-        <div>
-
-
-          <h1 className="text-4xl font-bold">
-
-            {product.name}
-
-          </h1>
 
 
 
-          <p className="text-2xl mt-5">
 
-            ${product.price}
+        {/* Related Products */}
 
-          </p>
+        <ProductSection
 
+          title="Related Products"
 
+          products={related}
 
-          <p className="mt-5 text-gray-600">
-
-            {product.description}
-
-          </p>
+        />
 
 
 
-          <button className="mt-8 bg-black text-white px-8 py-3 rounded-full">
-
-            Add To Cart
-
-          </button>
 
 
-        </div>
+
+
+
+        {/* New Arrivals */}
+
+        <ProductSection
+
+          title="New Arrivals"
+
+          products={recent.slice(0,4)}
+
+        />
+
+
 
 
 
       </div>
 
 
+
     </main>
 
   );
+
 
 }

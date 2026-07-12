@@ -8,7 +8,7 @@ export const createCategorySchema = z.object({
 
     image: z.string().optional(),
 
-    parent: z.string().optional(),
+    parent: z.union([z.string(), z.null(), z.undefined()]).optional(),
 
     isFeatured: z.coerce.boolean().optional(),
   }),

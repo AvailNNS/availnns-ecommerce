@@ -17,6 +17,8 @@ const router = Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/admin/categories", categoryRoutes);
+router.use("/admin/products", productRoutes);
 router.use("/admin", adminRoutes);
 
 router.use("/categories", categoryRoutes);

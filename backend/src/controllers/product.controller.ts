@@ -1,11 +1,14 @@
 import { Request, Response } from "express";
 import Product from "../models/Product";
 import { generateSlug } from "../utils/slug";
+import streamifier from "streamifier";
+import cloudinary from "../config/cloudinary";
 
 
 // ===============================
 // CREATE PRODUCT
 // ===============================
+
 export const createProduct = async (
   req: Request,
   res: Response
@@ -13,33 +16,123 @@ export const createProduct = async (
 
   try {
 
-    const slug =
-      typeof req.body.slug === "string" && req.body.slug.trim()
-        ? req.body.slug.trim()
-        : generateSlug(req.body.name || "");
+
+    let slug = generateSlug(
+      req.body.name || ""
+    );
+
+
+    // UNIQUE SLUG CHECK
+
+    const existProduct =
+      await Product.findOne({
+        slug
+      });
+
+
+    if(existProduct){
+
+      slug = `${slug}-${Date.now()}`;
+
+    }
 
 
 
-    const uploadedFiles = Array.isArray(req.files)
-      ? req.files
-      : req.file
-        ? [req.file]
-        : [];
 
-    const images = uploadedFiles.map((file: any) => ({
-      url: file.path || file.secure_url || "",
-      public_id: file.filename || file.public_id || "",
-    }));
+    const uploadedFiles =
+      Array.isArray(req.files)
+      ? (req.files as Express.Multer.File[])
+      : [];
 
 
 
-    const product = await Product.create({
+
+    const images:{
+      url:string;
+      public_id:string;
+    }[] = [];
+
+
+
+
+
+    for(const file of uploadedFiles){
+
+
+      const result:any =
+      await new Promise(
+
+        (resolve,reject)=>{
+
+
+          const uploadStream =
+          cloudinary.uploader.upload_stream(
+
+            {
+              folder:"products",
+            },
+
+
+            (error,result)=>{
+
+              if(error){
+
+                reject(error);
+
+              }
+              else{
+
+                resolve(result);
+
+              }
+
+            }
+
+          );
+
+
+
+          streamifier
+          .createReadStream(
+            file.buffer
+          )
+          .pipe(uploadStream);
+
+
+        }
+
+      );
+
+
+
+
+      images.push({
+
+        url:result.secure_url,
+
+        public_id:result.public_id,
+
+      });
+
+
+    }
+
+
+    const product =
+    await Product.create({
 
       ...req.body,
 
       slug,
 
-      ...(images.length > 0 ? { images } : {}),
+      images,
+
+      isPublished:true,
+
+      isFeatured: req.body.isFeatured === "true",
+
+      isBestSeller:req.body.isBestSeller === "true",
+
 
     });
 
@@ -57,25 +150,31 @@ export const createProduct = async (
 
 
 
-  } catch(error:any){
-    console.error("Product creation failed:", error);
+
+
+  }catch(error:any){
+
+
+    console.log(
+      "CREATE PRODUCT ERROR:",
+      error
+    );
+
 
     res.status(500).json({
 
       success:false,
 
-      message:"Product creation failed",
+      message:"Product create failed",
 
-      error:error.message || error,
+      error:error.message,
 
     });
+
 
   }
 
 };
-
-
-
 
 // ===============================
 // GET ALL PRODUCTS
@@ -353,43 +452,24 @@ export const getProductById = async (
 // ===============================
 
 export const updateProduct = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
+  req: Request,
+  res: Response
+): Promise<void> => {
 
 
-  try{
+  try {
 
 
-    const data:any = {
+    console.log("UPDATE PRODUCT HIT");
 
-      ...req.body,
+    console.log("UPDATE BODY:", req.body);
 
-    };
-
-
-
-    if(req.body.name){
-
-      data.slug = generateSlug(
-        req.body.name
-      );
-
-    }
+    console.log("UPDATE FILES:", req.files);
 
 
 
-    const product = await Product.findByIdAndUpdate(
-
-      req.params.id,
-
-      data,
-
-      {
-        new:true,
-      }
-
-    );
+    const product =
+      await Product.findById(req.params.id);
 
 
 
@@ -409,17 +489,206 @@ export const updateProduct = async(
 
 
 
+
+
+    const data:any = {
+
+      ...req.body,
+
+    };
+
+
+
+
+
+
+
+    // OLD IMAGES FROM FRONTEND
+
+    if(req.body.oldImages){
+
+      data.images =
+        JSON.parse(req.body.oldImages);
+
+    }
+
+
+
+
+
+
+
+
+    // UPLOAD NEW IMAGES
+
+    const files =
+      req.files as Express.Multer.File[];
+
+
+
+    if(files && files.length){
+
+
+
+      const newImages:any[] = [];
+
+
+
+      for(const file of files){
+
+
+
+        const result:any =
+          await new Promise(
+            (resolve,reject)=>{
+
+
+              const uploadStream =
+                cloudinary.uploader.upload_stream(
+
+                  {
+                    folder:"products",
+                  },
+
+
+                  (error,result)=>{
+
+
+                    if(error){
+
+                      reject(error);
+
+                    }else{
+
+                      resolve(result);
+
+                    }
+
+
+                  }
+
+                );
+
+
+
+              streamifier
+                .createReadStream(file.buffer)
+                .pipe(uploadStream);
+
+
+
+            }
+          );
+
+
+
+
+
+
+        newImages.push({
+
+          url:result.secure_url,
+
+          public_id:result.public_id,
+
+        });
+
+
+
+      }
+
+
+
+
+
+
+      data.images = [
+
+        ...(data.images || []),
+
+        ...newImages
+
+      ];
+
+
+
+    }
+
+
+    // NUMBER CONVERSION
+
+
+    if(req.body.price){
+
+      data.price =
+        Number(req.body.price);
+
+    }
+
+
+
+    if(req.body.stock){
+
+      data.stock =
+        Number(req.body.stock);
+
+    }
+
+
+    // BOOLEAN CONVERSION
+    if(req.body.isFeatured !== undefined){
+
+ data.isFeatured =
+ req.body.isFeatured === "true";
+
+}
+
+
+
+if(req.body.isBestSeller !== undefined){
+
+ data.isBestSeller =
+ req.body.isBestSeller === "true";
+
+}
+
+
+    const updatedProduct =
+      await Product.findByIdAndUpdate(
+
+        req.params.id,
+
+        data,
+
+        {
+          new:true,
+        }
+
+      );
+
+
+
+
     res.status(200).json({
 
       success:true,
 
-      product,
+      message:"Product updated successfully",
+
+      product:updatedProduct,
 
     });
 
 
 
   }catch(error:any){
+
+
+    console.log(
+      "UPDATE PRODUCT ERROR:",
+      error
+    );
+
 
 
     res.status(500).json({
@@ -433,11 +702,11 @@ export const updateProduct = async(
     });
 
 
+
   }
 
 
 };
-
 
 
 
@@ -598,6 +867,72 @@ export const getBestSellerProducts = async (
       error: error.message,
     });
   }
+};
+
+// ===============================
+// NEW ARRIVAL PRODUCTS
+// ===============================
+export const getNewArrivalProducts = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
+  try {
+
+    const days = 60; // 2 months
+
+    const date = new Date();
+
+    date.setDate(
+      date.getDate() - days
+    );
+
+
+    const products = await Product.find({
+
+      isPublished:true,
+
+      createdAt:{
+        $gte: date,
+      },
+
+    })
+    .populate("category")
+    .sort({
+      createdAt:-1,
+    })
+    .limit(8);
+
+
+
+    res.status(200).json({
+
+      success:true,
+
+      products,
+
+    });
+
+
+
+  } catch(error:any){
+
+    console.log(
+      "NEW ARRIVAL ERROR:",
+      error
+    );
+
+
+    res.status(500).json({
+
+      success:false,
+
+      message:"Failed to fetch new arrivals",
+
+    });
+
+  }
+
 };
 
 // ===============================
@@ -810,5 +1145,4 @@ export const getLowStockProducts = async (
 
 
   }
-
 };

@@ -7,38 +7,34 @@ import Product from "../models/Product";
 // GET USER CART
 // ===============================
 export const getCart = async (
-  req:Request,
-  res:Response
-):Promise<void>=>{
+  req: Request,
+  res: Response
+): Promise<void> => {
 
+  try {
 
-  try{
-
-
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
 
 
     let cart = await Cart.findOne({
-      user:userId,
+      user: userId,
     })
     .populate("items.product");
 
 
-
-    if(!cart){
+    if (!cart) {
 
       cart = await Cart.create({
 
-        user:userId,
+        user: userId,
 
-        items:[],
+        items: [],
 
-        total:0,
+        total: 0,
 
       });
 
     }
-
 
 
     res.status(200).json({
@@ -51,7 +47,13 @@ export const getCart = async (
 
 
 
-  }catch(error:any){
+  } catch(error:any) {
+
+
+    console.log(
+      "GET CART ERROR:",
+      error
+    );
 
 
     res.status(500).json({
@@ -64,11 +66,10 @@ export const getCart = async (
 
     });
 
-
   }
 
-
 };
+
 
 
 
@@ -76,16 +77,16 @@ export const getCart = async (
 // ===============================
 // ADD TO CART
 // ===============================
-export const addToCart = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
+export const addToCart = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
 
 
-  try{
+  try {
 
 
-    const userId = (req as any).user._id;
+    const userId = (req as any).user.id;
 
 
     const {
@@ -95,9 +96,31 @@ export const addToCart = async(
 
 
 
-    const product = await Product.findById(
-      productId
-    );
+    const addQuantity =
+      Number(quantity || 1);
+
+
+
+    if(addQuantity < 1){
+
+      res.status(400).json({
+
+        success:false,
+
+        message:"Invalid quantity",
+
+      });
+
+      return;
+
+    }
+
+
+
+
+    const product =
+      await Product.findById(productId);
+
 
 
 
@@ -117,15 +140,21 @@ export const addToCart = async(
 
 
 
-    let cart = await Cart.findOne({
-      user:userId,
-    });
+
+    let cart =
+      await Cart.findOne({
+
+        user:userId,
+
+      });
+
 
 
 
     if(!cart){
 
-      cart = await Cart.create({
+      cart =
+      await Cart.create({
 
         user:userId,
 
@@ -139,29 +168,41 @@ export const addToCart = async(
 
 
 
-    const existingItem = cart.items.find(
 
-      (item:any)=>
-        item.product.toString() === productId
 
-    );
+    const existingItem =
+      cart.items.find(
+
+        (item:any)=>
+
+          String(item.product)
+          ===
+          String(productId)
+
+      );
+
+
 
 
 
     if(existingItem){
 
-      existingItem.quantity += Number(quantity || 1);
 
-    }else{
+      existingItem.quantity += addQuantity;
+
+
+    }
+    else{
 
 
       cart.items.push({
 
         product:product._id,
 
-        quantity:Number(quantity || 1),
+        quantity:addQuantity,
 
         price:product.price,
+
 
       } as any);
 
@@ -170,19 +211,40 @@ export const addToCart = async(
 
 
 
-    cart.total = cart.items.reduce(
 
-      (sum,item:any)=>
 
-        sum + (item.price * item.quantity),
 
-      0
 
-    );
+    cart.total =
+      cart.items.reduce(
+
+        (sum,item:any)=>
+
+          sum +
+          (
+            item.price *
+            item.quantity
+          ),
+
+        0
+
+      );
+
+
+
+
 
 
 
     await cart.save();
+
+
+
+    await cart.populate(
+      "items.product"
+    );
+
+
 
 
 
@@ -198,7 +260,14 @@ export const addToCart = async(
 
 
 
+
   }catch(error:any){
+
+
+    console.log(
+      "ADD CART ERROR:",
+      error
+    );
 
 
     res.status(500).json({
@@ -214,25 +283,30 @@ export const addToCart = async(
 
   }
 
-
 };
 
 
 
 
+
+
+
+
 // ===============================
-// UPDATE QUANTITY
+// UPDATE CART ITEM
 // ===============================
-export const updateCartItem = async(
+export const updateCartItem = async (
   req:Request,
   res:Response
-):Promise<void>=>{
+):Promise<void> => {
 
 
-  try{
+  try {
 
 
-    const userId = (req as any).user._id;
+    const userId =
+      (req as any).user.id;
+
 
 
     const {
@@ -242,9 +316,16 @@ export const updateCartItem = async(
 
 
 
-    const cart = await Cart.findOne({
-      user:userId,
-    });
+
+
+    const cart =
+      await Cart.findOne({
+
+        user:userId,
+
+      });
+
+
 
 
 
@@ -264,37 +345,97 @@ export const updateCartItem = async(
 
 
 
-    const item:any = cart.items.find(
-
-      (item:any)=>
-
-        item.product.toString() === productId
-
-    );
 
 
 
-    if(item){
+    const item:any =
+      cart.items.find(
 
-      item.quantity = quantity;
+        (item:any)=>
+
+          String(item.product)
+          ===
+          String(productId)
+
+      );
+
+
+
+
+
+    if(!item){
+
+      res.status(404).json({
+
+        success:false,
+
+        message:"Item not found",
+
+      });
+
+      return;
 
     }
 
 
 
-    cart.total = cart.items.reduce(
 
-      (sum,item:any)=>
 
-        sum + item.price * item.quantity,
+    item.quantity =
+      Number(quantity);
 
-      0
 
-    );
+
+
+    if(item.quantity <= 0){
+
+      cart.items =
+        cart.items.filter(
+
+          (item:any)=>
+
+            String(item.product)
+            !==
+            String(productId)
+
+        );
+
+    }
+
+
+
+
+
+
+
+    cart.total =
+      cart.items.reduce(
+
+        (sum,item:any)=>
+
+          sum +
+          (
+            item.price *
+            item.quantity
+          ),
+
+        0
+
+      );
+
+
 
 
 
     await cart.save();
+
+
+
+    await cart.populate(
+      "items.product"
+    );
+
+
 
 
 
@@ -305,6 +446,8 @@ export const updateCartItem = async(
       cart,
 
     });
+
+
 
 
 
@@ -324,8 +467,12 @@ export const updateCartItem = async(
 
   }
 
-
 };
+
+
+
+
+
 
 
 
@@ -333,27 +480,37 @@ export const updateCartItem = async(
 // ===============================
 // REMOVE CART ITEM
 // ===============================
-export const removeCartItem = async(
+export const removeCartItem = async (
   req:Request,
   res:Response
-):Promise<void>=>{
+):Promise<void> => {
 
 
-  try{
+  try {
 
 
-    const userId = (req as any).user._id;
+    const userId =
+      (req as any).user.id;
+
 
 
     const {
       productId,
+
     } = req.body;
 
 
 
-    const cart = await Cart.findOne({
-      user:userId,
-    });
+
+
+    const cart =
+      await Cart.findOne({
+
+        user:userId,
+
+      });
+
+
 
 
 
@@ -373,29 +530,54 @@ export const removeCartItem = async(
 
 
 
-    cart.items = cart.items.filter(
-
-      (item:any)=>
-
-        item.product.toString() !== productId
-
-    );
 
 
+    cart.items =
+      cart.items.filter(
 
-    cart.total = cart.items.reduce(
+        (item:any)=>
 
-      (sum,item:any)=>
+          String(item.product)
+          !==
+          String(productId)
 
-        sum + item.price * item.quantity,
+      );
 
-      0
 
-    );
+
+
+
+
+    cart.total =
+      cart.items.reduce(
+
+        (sum,item:any)=>
+
+          sum +
+          (
+            item.price *
+            item.quantity
+          ),
+
+        0
+
+      );
+
+
+
 
 
 
     await cart.save();
+
+
+
+    await cart.populate(
+      "items.product"
+    );
+
+
+
 
 
 
@@ -408,6 +590,8 @@ export const removeCartItem = async(
       cart,
 
     });
+
+
 
 
 
@@ -426,6 +610,5 @@ export const removeCartItem = async(
 
 
   }
-
 
 };
