@@ -1,49 +1,244 @@
+"use client";
+
 import Link from "next/link";
-import { Phone, Truck, Globe, DollarSign } from "lucide-react";
 
-export default function TopBar() {
-  return (
-    <div className="bg-slate-900 text-white text-sm">
-      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-6">
+import {
+  Phone,
+  Truck,
+  Globe,
+  DollarSign,
+  ChevronDown,
+} from "lucide-react";
 
-        {/* Left */}
-        <div className="flex items-center gap-6">
 
-          <div className="flex items-center gap-2">
-            <Truck size={16} />
-            <span>Free shipping on orders over $100</span>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Phone size={16} />
-            <span>+880 1234-567890</span>
-          </div>
+export default function TopBar(){
 
-        </div>
 
-        {/* Right */}
-        <div className="flex items-center gap-6">
+return (
 
-          <Link
-            href="/track-order"
-            className="hover:text-gray-300"
-          >
-            Track Order
-          </Link>
+<div className="
+bg-zinc-950
+text-white
+text-xs
+">
 
-          <div className="flex items-center gap-1">
-            <Globe size={16} />
-            <span>EN</span>
-          </div>
 
-          <div className="flex items-center gap-1">
-            <DollarSign size={16} />
-            <span>USD</span>
-          </div>
+<div className="
+mx-auto
+flex
+h-10
+max-w-7xl
+items-center
+justify-between
+px-6
+">
 
-        </div>
 
-      </div>
-    </div>
-  );
+
+
+
+
+
+
+{/* LEFT */}
+
+<div className="
+flex
+items-center
+gap-6
+">
+
+
+<div className="
+hidden
+items-center
+gap-2
+sm:flex
+">
+
+
+<div className="
+flex
+h-6
+w-6
+items-center
+justify-center
+rounded-full
+bg-white/10
+">
+
+<Truck size={14}/>
+
+</div>
+
+
+<span className="
+text-gray-200
+">
+
+Free shipping over $100
+
+</span>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div className="
+flex
+items-center
+gap-2
+">
+
+
+<div className="
+flex
+h-6
+w-6
+items-center
+justify-center
+rounded-full
+bg-white/10
+">
+
+<Phone size={14}/>
+
+</div>
+
+
+<span className="
+text-gray-200
+">
+
++880 1234-567890
+
+</span>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* RIGHT */}
+
+<div className="
+flex
+items-center
+gap-5
+">
+
+
+<Link
+
+href="/track-order"
+
+className="
+text-gray-200
+transition
+hover:text-white
+"
+
+>
+
+Track Order
+
+</Link>
+
+
+
+
+
+
+
+<div className="
+hidden
+items-center
+gap-1
+sm:flex
+cursor-pointer
+hover:text-gray-300
+">
+
+
+<Globe size={14}/>
+
+<span>
+EN
+</span>
+
+
+<ChevronDown size={12}/>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div className="
+hidden
+items-center
+gap-1
+sm:flex
+cursor-pointer
+hover:text-gray-300
+">
+
+
+<DollarSign size={14}/>
+
+
+<span>
+USD
+</span>
+
+
+<ChevronDown size={12}/>
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+);
+
+
 }

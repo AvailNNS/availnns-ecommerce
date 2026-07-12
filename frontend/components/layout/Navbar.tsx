@@ -1,9 +1,8 @@
 "use client";
 
-
 import { useEffect, useState } from "react";
-
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
   Menu,
@@ -13,95 +12,74 @@ import {
 } from "lucide-react";
 
 
-import { useRouter } from "next/navigation";
-
-
+// Components
 import SearchBar from "./SearchBar";
-
 import MobileMenu from "./MobileMenu";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 
+// Hooks
 import useCart from "@/hooks/useCart";
 
-import useWishlist from "@/hooks/useWishlist";
+
+// Context
+import { useWishlist } from "@/context/WishlistContext";
+
+
+
+interface UserData {
+  name:string;
+  email?:string;
+}
+
+
+
+export default function Navbar(){
+
+
+const router = useRouter();
+
+
+
+const [
+  mobileMenuOpen,
+  setMobileMenuOpen
+]=useState(false);
+
+
+
+const [
+  cartOpen,
+  setCartOpen
+]=useState(false);
+
+
+
+const [
+  user,
+  setUser
+]=useState<UserData | null>(null);
 
 
 
 
 
-export default function Navbar() {
-
-
-  const [mobileMenuOpen,setMobileMenuOpen] =
-    useState(false);
-
-
-  const [user,setUser] =
-    useState<any>(null);
-
-
-
-  const router = useRouter();
-
-
-
-  const {
-    totalItems
-  } = useCart();
-
-
-
-  const {
-    wishlistCount
-  } = useWishlist();
+const {
+  totalItems
+}=useCart();
 
 
 
 
 
+const {
+  wishlist
+}=useWishlist();
 
 
 
-  useEffect(()=>{
-
-
-    const savedUser =
-      localStorage.getItem("user");
-
-
-
-    if(savedUser){
-
-      setUser(
-        JSON.parse(savedUser)
-      );
-
-    }
-
-
-  },[]);
-
-
-
-
-
-
-
-  const logout = ()=>{
-
-
-    localStorage.removeItem("token");
-
-    localStorage.removeItem("user");
-
-
-    setUser(null);
-
-
-    router.push("/login");
-
-
-  };
+const wishlistCount =
+wishlist.length;
 
 
 
@@ -109,29 +87,111 @@ export default function Navbar() {
 
 
 
+useEffect(()=>{
 
 
-  return (
+try{
+
+
+const savedUser =
+localStorage.getItem("user");
+
+
+
+if(savedUser){
+
+setUser(
+JSON.parse(savedUser)
+);
+
+}
+
+
+
+}catch(error){
+
+console.log(
+"User load error",
+error
+);
+
+
+}
+
+
+},[]);
+
+
+
+
+
+
+
+const logout = ()=>{
+
+
+localStorage.removeItem(
+"token"
+);
+
+
+localStorage.removeItem(
+"user"
+);
+
+
+setUser(null);
+
+
+router.push(
+"/login"
+);
+
+
+};
+
+
+
+
+
+
+
+
+
+return (
 
 <>
 
 
-<header className="
+<header
+
+className="
+sticky
+top-0
+z-50
 border-b
 bg-white
-">
+shadow-sm
+"
+
+>
 
 
-<div className="
+<div
+
+className="
 mx-auto
 flex
 max-w-7xl
 items-center
 justify-between
-gap-6
+gap-4
 px-6
 py-4
-">
+md:gap-6
+"
+
+>
 
 
 
@@ -141,19 +201,19 @@ py-4
 
 <button
 
-onClick={()=>
-setMobileMenuOpen(true)
-}
+onClick={()=>setMobileMenuOpen(true)}
 
-className="md:hidden"
+className="
+p-1
+text-gray-600
+md:hidden
+"
 
 >
 
 <Menu size={24}/>
 
 </button>
-
-
 
 
 
@@ -171,6 +231,7 @@ className="
 shrink-0
 text-2xl
 font-bold
+tracking-tight
 "
 
 >
@@ -185,13 +246,17 @@ NOPTRIX
 
 
 
-
-
 {/* Search */}
 
-<div className="
+<div
+
+className="
+hidden
 flex-1
-">
+md:block
+"
+
+>
 
 <SearchBar/>
 
@@ -203,18 +268,18 @@ flex-1
 
 
 
+{/* Right */}
 
+<div
 
-{/* Right Menu */}
-
-<div className="
+className="
 flex
 items-center
-gap-5
-shrink-0
-">
+gap-4
+sm:gap-5
+"
 
-
+>
 
 
 
@@ -224,15 +289,16 @@ shrink-0
 
 {/* Wishlist */}
 
-
 <Link
 
 href="/wishlist"
 
-className="relative"
+className="
+relative
+p-1
+"
 
 >
-
 
 <Heart size={22}/>
 
@@ -241,13 +307,15 @@ className="relative"
 {
 wishlistCount > 0 &&
 
-<span className="
+<span
+
+className="
 absolute
--right-2
--top-2
+-right-1
+-top-1
 flex
-h-5
-w-5
+h-4
+w-4
 items-center
 justify-center
 rounded-full
@@ -255,18 +323,24 @@ bg-red-500
 text-[10px]
 font-bold
 text-white
-">
+"
 
-{wishlistCount}
+>
+
+{
+wishlistCount > 99
+?
+"99+"
+:
+wishlistCount
+}
 
 </span>
 
 }
 
 
-
 </Link>
-
 
 
 
@@ -277,12 +351,14 @@ text-white
 
 {/* Cart */}
 
+<button
 
-<Link
+onClick={()=>setCartOpen(true)}
 
-href="/cart"
-
-className="relative"
+className="
+relative
+p-1
+"
 
 >
 
@@ -292,17 +368,18 @@ className="relative"
 
 
 
-
 {
 totalItems > 0 &&
 
-<span className="
+<span
+
+className="
 absolute
--right-2
--top-2
+-right-1
+-top-1
 flex
-h-5
-w-5
+h-4
+w-4
 items-center
 justify-center
 rounded-full
@@ -310,9 +387,17 @@ bg-black
 text-[10px]
 font-bold
 text-white
-">
+"
 
-{totalItems}
+>
+
+{
+totalItems > 99
+?
+"99+"
+:
+totalItems
+}
 
 </span>
 
@@ -320,8 +405,7 @@ text-white
 
 
 
-</Link>
-
+</button>
 
 
 
@@ -332,17 +416,24 @@ text-white
 
 {/* User */}
 
+
 {
 
 user ?
 
 (
 
-<div className="
+<div
+
+className="
 flex
 items-center
 gap-3
-">
+border-l
+pl-4
+"
+
+>
 
 
 <Link
@@ -372,6 +463,7 @@ onClick={logout}
 
 className="
 text-sm
+font-medium
 text-red-500
 hover:text-red-700
 "
@@ -388,11 +480,19 @@ Logout
 
 )
 
+
 :
+
 
 (
 
-<Link href="/login">
+<Link
+
+href="/login"
+
+className="p-1"
+
+>
 
 <User size={22}/>
 
@@ -404,6 +504,10 @@ Logout
 
 
 
+</div>
+
+
+
 
 
 </div>
@@ -413,7 +517,25 @@ Logout
 
 
 
+
+{/* Mobile Search */}
+
+<div
+
+className="
+border-t
+px-6
+py-3
+md:hidden
+"
+
+>
+
+<SearchBar/>
+
 </div>
+
+
 
 
 </header>
@@ -424,15 +546,29 @@ Logout
 
 
 
+{/* Cart Drawer */}
 
+<CartDrawer
+
+open={cartOpen}
+
+onClose={()=>setCartOpen(false)}
+
+/>
+
+
+
+
+
+
+
+{/* Mobile Menu */}
 
 <MobileMenu
 
 open={mobileMenuOpen}
 
-onClose={()=>
-setMobileMenuOpen(false)
-}
+onClose={()=>setMobileMenuOpen(false)}
 
 />
 

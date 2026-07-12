@@ -130,3 +130,60 @@ export const getTree = async (
     });
   }
 };
+
+// GET CATEGORY BY SLUG
+export const getBySlug = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
+  try {
+
+    const slug = req.params.slug as string;
+
+
+    const category =
+      await categoryService.getCategoryBySlug(slug);
+
+
+
+    if (!category) {
+
+      res.status(404).json({
+
+        success: false,
+
+        message: "Category not found",
+
+      });
+
+      return;
+
+    }
+
+
+
+    res.status(200).json({
+
+      success: true,
+
+      data: category,
+
+    });
+
+
+  } catch (error: any) {
+
+
+    res.status(500).json({
+
+      success: false,
+
+      message: error.message,
+
+    });
+
+
+  }
+
+};

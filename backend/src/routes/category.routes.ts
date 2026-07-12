@@ -1,28 +1,56 @@
 import { Router } from "express";
+
 import {
   create,
   getAll,
   getTree,
+  getBySlug,
   update,
   remove,
 } from "../controllers/category.controller";
 
+
 import authMiddleware from "../middleware/auth.middleware";
 import authorize from "../middleware/role.middleware";
 import validate from "../middleware/validate";
+
 
 import {
   createCategorySchema,
   updateCategorySchema,
 } from "../validators/category.validator";
 
+
 const router = Router();
 
-// Public Routes
-router.get("/", getAll);
-router.get("/tree", getTree);
 
-// Create Category
+// =========================
+// Public Routes
+// =========================
+
+router.get(
+  "/",
+  getAll
+);
+
+
+router.get(
+  "/tree",
+  getTree
+);
+
+
+router.get(
+  "/category/:slug",
+  getBySlug
+);
+
+
+
+// =========================
+// Admin Routes
+// =========================
+
 router.post(
   "/",
   authMiddleware,
@@ -31,7 +59,8 @@ router.post(
   create
 );
 
-// Update Category
+
+
 router.put(
   "/:id",
   authMiddleware,
@@ -40,12 +69,14 @@ router.put(
   update
 );
 
-// Delete Category
+
+
 router.delete(
   "/:id",
   authMiddleware,
   authorize("admin"),
   remove
 );
+
 
 export default router;

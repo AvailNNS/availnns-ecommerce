@@ -1,6 +1,7 @@
 "use client";
 
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 import { ReactNode } from "react";
 
 
@@ -12,7 +13,9 @@ export default function AppProvider({
 
   return (
     <CartProvider>
-      {children}
+      <WishlistProvider>
+        {children}
+      </WishlistProvider>
     </CartProvider>
   );
 

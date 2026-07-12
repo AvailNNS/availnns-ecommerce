@@ -335,3 +335,15 @@ export const updateStock = async (
   return res.data;
 
 };
+
+export const getCategoryProducts = async (
+  slug: string
+) => {
+
+  const res = await api.get(
+    `/products/category/${slug}`
+  );
+
+  return res.data.data;
+
+};

@@ -61,3 +61,17 @@ export const getCategoryTree = async () => {
 
   return buildTree(null);
 };
+export const getCategoryBySlug = async (
+  slug: string
+) => {
+
+  const category = await Category.findOne({
+    slug,
+    isActive: true,
+  })
+  .populate("parent", "name slug");
+
+
+  return category;
+
+};
