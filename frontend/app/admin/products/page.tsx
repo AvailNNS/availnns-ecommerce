@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import Link from "next/link";
+
+import {
+  Search,
+  Edit,
+  Trash2,
+  Plus,
+  Package,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+
 
 import {
   getAdminProducts,
@@ -9,74 +24,77 @@ import {
 } from "@/services/product.service";
 
 
-export default function AdminProductsPage() {
+import {
+  Product,
+} from "@/types/product";
 
 
-  const [products,setProducts] =
-    useState<any[]>([]);
 
+export default function AdminProductsPage(){
 
-  const [loading,setLoading] =
-    useState(true);
 
+const [products,setProducts] =
+useState<Product[]>([]);
 
 
+const [loading,setLoading] =
+useState(true);
 
-  const fetchProducts = async()=>{
 
+const [search,setSearch] =
+useState("");
 
-    try{
 
 
-      const token =
-        localStorage.getItem("token");
 
 
-      if(!token) return;
+const loadProducts = async()=>{
 
 
+try{
 
-      const data =
-        await getAdminProducts(token);
 
+const token =
+localStorage.getItem("token");
 
 
-      setProducts(data);
+if(!token)
+return;
 
 
 
-    }catch(error){
+const data =
+await getAdminProducts(token);
 
 
-      console.log(
-        "Product Fetch Error:",
-        error
-      );
+setProducts(data);
 
 
-    }finally{
 
+}catch(error){
 
-      setLoading(false);
+console.log(error);
 
 
-    }
+}finally{
 
+setLoading(false);
 
-  };
+}
 
 
+};
 
 
 
 
-  useEffect(()=>{
 
+useEffect(()=>{
 
-    fetchProducts();
+loadProducts();
 
+},[]);
 
-  },[]);
 
 
 
@@ -84,62 +102,62 @@ export default function AdminProductsPage() {
 
 
 
-  const handleDelete = async(
-    id:string
-  )=>{
 
+const deleteProduct =
+async(id:string)=>{
 
-    const confirmDelete =
-      confirm(
-        "Are you sure you want to delete?"
-      );
 
+const confirmDelete =
+confirm(
+"Are you sure you want to delete?"
+);
 
 
-    if(!confirmDelete)
-      return;
 
+if(!confirmDelete)
+return;
 
 
 
-    const token =
-      localStorage.getItem("token");
 
+try{
 
 
-    if(!token)
-      return;
+const token =
+localStorage.getItem("token");
 
 
+if(!token)
+return;
 
 
-    try{
 
+await removeProduct(
+id,
+token
+);
 
-      await removeProduct(
-        id,
-        token
-      );
 
 
+setProducts(prev=>
 
-      fetchProducts();
+prev.filter(
+item=>item._id!==id
+)
 
+);
 
 
-    }catch(error){
 
+}catch(error){
 
-      console.log(
-        "Delete Error:",
-        error
-      );
+console.log(error);
 
+}
 
-    }
 
+};
 
-  };
 
 
 
@@ -147,476 +165,695 @@ export default function AdminProductsPage() {
 
 
 
-  if(loading){
 
+const filteredProducts =
+products.filter(product=>
 
-    return (
+product.name
+.toLowerCase()
+.includes(
+search.toLowerCase()
+)
 
-      <div className="p-8 text-gray-500">
+);
 
-        Loading products...
 
-      </div>
 
-    );
 
 
-  }
 
 
+if(loading){
 
+return(
 
+<div className="p-10 text-center">
 
+Loading products...
 
+</div>
 
-  return (
+);
 
-    <div className="space-y-6">
+}
 
 
 
 
 
-      {/* HEADER */}
 
+return(
 
-      <div className="
-        flex
-        justify-between
-        items-center
-      ">
+<div className="space-y-8">
 
 
-        <div>
 
 
-          <h1 className="
-            text-3xl
-            font-bold
-          ">
 
-            Products
+{/* HEADER */}
 
-          </h1>
 
+<div className="
+flex
+items-center
+justify-between
+">
 
 
-          <p className="
-            text-gray-500
-            mt-1
-          ">
+<div>
 
-            Manage your store products
+<h1 className="
+text-3xl
+font-bold
+">
 
-          </p>
+Products
 
+</h1>
 
-        </div>
 
+<p className="
+text-gray-500
+">
 
+Manage your store inventory
 
+</p>
 
 
+</div>
 
-        <Link
 
-          href="/admin/products/add"
 
-          className="
-            bg-black
-            text-white
-            px-5
-            py-3
-            rounded-xl
-            hover:bg-gray-800
-            transition
-          "
 
-        >
+<Link
 
-          + Add Product
+href="/admin/products/add"
 
+className="
+flex
+items-center
+gap-2
+rounded-xl
+bg-black
+px-5
+py-3
+text-white
+hover:opacity-90
+"
 
-        </Link>
+>
 
 
+<Plus size={18}/>
 
-      </div>
+Add Product
 
 
+</Link>
 
 
 
+</div>
 
 
 
-      {/* TABLE */}
 
 
 
-      <div className="
-        bg-white
-        rounded-2xl
-        shadow
-        overflow-x-auto
-      ">
 
 
-        <table className="
-          w-full
-          min-w-[700px]
-        ">
+{/* STATS */}
 
 
+<div className="
+grid
+gap-5
+md:grid-cols-3
+">
 
-          <thead className="
-            bg-gray-100
-          ">
 
 
-            <tr>
+<div className="
+rounded-2xl
+bg-white
+p-5
+shadow
+">
 
+<div className="flex gap-3 items-center">
 
-              <th className="
-                p-4
-                text-left
-              ">
+<Package/>
 
-                Image
+<h3>
+Total Products
+</h3>
 
-              </th>
+</div>
 
 
+<p className="
+mt-3
+text-3xl
+font-bold
+">
 
-              <th className="
-                p-4
-                text-left
-              ">
+{products.length}
 
-                Name
+</p>
 
-              </th>
 
+</div>
 
 
 
-              <th className="
-                p-4
-                text-left
-              ">
 
-                Price
 
-              </th>
+<div className="
+rounded-2xl
+bg-white
+p-5
+shadow
+">
 
 
+<div className="flex gap-3 items-center">
 
+<TrendingUp/>
 
-              <th className="
-                p-4
-                text-left
-              ">
+<h3>
+Best Sellers
+</h3>
 
-                Stock
 
-              </th>
+</div>
 
 
+<p className="
+mt-3
+text-3xl
+font-bold
+">
 
+{
+products.filter(
+p=>p.isBestSeller
+).length
+}
 
-              <th className="
-                p-4
-                text-left
-              ">
+</p>
 
-                Action
 
-              </th>
 
+</div>
 
 
-            </tr>
 
 
-          </thead>
 
 
 
+<div className="
+rounded-2xl
+bg-white
+p-5
+shadow
+">
 
 
+<div className="flex gap-3 items-center">
 
+<Star/>
 
-          <tbody>
+<h3>
+Featured
+</h3>
 
+</div>
 
-          {
-            products.length === 0 ? (
 
-              <tr>
+<p className="
+mt-3
+text-3xl
+font-bold
+">
 
-                <td
-                  colSpan={5}
-                  className="
-                    text-center
-                    p-8
-                    text-gray-500
-                  "
-                >
+{
+products.filter(
+p=>p.isFeatured
+).length
+}
 
-                  No products found
+</p>
 
-                </td>
 
+</div>
 
-              </tr>
 
 
-            ) : (
+</div>
 
-            products.map((product)=>(
 
 
-              <tr
 
-                key={product._id}
 
-                className="
-                  border-t
-                  hover:bg-gray-50
-                "
 
-              >
 
 
 
 
+{/* SEARCH */}
 
-                {/* IMAGE */}
 
+<div className="
+relative
+max-w-lg
+">
 
-                <td className="p-4">
 
+<Search
 
-                  <div className="
-                    flex
-                    items-center
-                    gap-3
-                  ">
+className="
+absolute
+left-3
+top-3
+text-gray-400
+"
 
+/>
 
-                    <img
 
-                      src={
-                        product.images?.[0]?.url ||
-                        "/placeholder.png"
-                      }
 
+<input
 
-                      alt={product.name}
+placeholder="
+Search products...
+"
 
+value={search}
 
-                      className="
-                        w-14
-                        h-14
-                        rounded-lg
-                        object-cover
-                        border
-                      "
+onChange={
+e=>setSearch(e.target.value)
+}
 
-                    />
+className="
+w-full
+rounded-xl
+border
+py-3
+pl-10
+pr-4
+"
 
+/>
 
 
+</div>
 
 
-                    {
-                      product.images?.length > 1 && (
 
-                        <span className="
-                          text-xs
-                          bg-gray-100
-                          px-2
-                          py-1
-                          rounded-full
-                        ">
 
-                          +{product.images.length - 1}
 
-                        </span>
 
-                      )
-                    }
 
 
 
-                  </div>
+{/* PRODUCTS */}
 
 
-                </td>
+{
 
+filteredProducts.length===0 ?
 
 
+<div className="
+rounded-3xl
+bg-white
+p-12
+text-center
+shadow
+">
 
 
+<Package
+size={50}
+className="mx-auto mb-4"
+/>
 
 
-                {/* NAME */}
+<h2 className="
+text-xl
+font-bold
+">
 
+No products found
 
-                <td className="
-                  p-4
-                  font-semibold
-                ">
+</h2>
 
-                  {product.name}
 
 
-                </td>
+</div>
 
 
 
+:
 
 
 
+<div className="
+grid
+gap-6
+md:grid-cols-2
+xl:grid-cols-3
+">
 
-                {/* PRICE */}
 
 
-                <td className="p-4">
+{
 
-                  ${product.price}
+filteredProducts.map(product=>(
 
 
-                </td>
 
+<div
 
+key={product._id}
 
+className="
+rounded-3xl
+bg-white
+p-5
+shadow
+transition
+hover:-translate-y-1
+hover:shadow-xl
+"
 
+>
 
 
+<div className="
+relative
+h-56
+overflow-hidden
+rounded-2xl
+bg-gray-100
+">
 
 
-                {/* STOCK */}
+<img
 
+src={
+product.images?.[0]?.url ||
+"/placeholder.png"
+}
 
-                <td className="p-4">
+className="
+h-full
+w-full
+object-cover
+"
 
+/>
 
-                  <span
-                    className={`
-                      ${
-                        product.stock <= 5
-                        ? "text-red-600"
-                        : "text-green-600"
-                      }
-                      font-semibold
-                    `}
-                  >
 
-                    {product.stock}
 
+{
 
-                  </span>
+product.discountPrice>0 &&
 
+<span className="
+absolute
+left-3
+top-3
+rounded-full
+bg-red-500
+px-3
+py-1
+text-xs
+text-white
+">
 
-                </td>
+Sale
 
+</span>
 
+}
 
 
 
+</div>
 
 
 
 
-                {/* ACTION */}
 
 
 
-                <td className="
-                  p-4
-                  space-x-4
-                ">
 
+<h2 className="
+mt-4
+truncate
+text-xl
+font-bold
+">
 
+{product.name}
 
-                  <Link
+</h2>
 
-                    href={
-                      `/admin/products/edit/${product._id}`
-                    }
 
-                    className="
-                      text-blue-600
-                      hover:underline
-                    "
 
-                  >
 
-                    Edit
 
+<p className="
+text-sm
+text-gray-500
+">
 
-                  </Link>
+{
+typeof product.category==="object"
+?
+product.category.name
+:
+""
+}
 
+</p>
 
 
 
 
-                  <button
 
-                    onClick={()=>
-                      handleDelete(product._id)
-                    }
 
 
-                    className="
-                      text-red-600
-                      hover:underline
-                    "
 
-                  >
+<div className="
+mt-3
+flex
+gap-3
+">
 
-                    Delete
 
+<span className="
+text-xl
+font-bold
+">
 
-                  </button>
+${product.price}
 
+</span>
 
 
-                </td>
+{
+product.discountPrice>0 &&
 
+<span className="
+text-gray-400
+line-through
+">
 
+${product.discountPrice}
 
+</span>
 
+}
 
-              </tr>
 
 
-            ))
+</div>
 
-            )
-          }
 
 
 
-          </tbody>
 
 
 
 
-        </table>
 
+<div className="
+mt-4
+flex
+gap-2
+flex-wrap
+">
 
 
+{
+product.isFeatured &&
 
-      </div>
+<span className="
+rounded-full
+bg-blue-100
+px-3
+py-1
+text-xs
+">
 
+Featured
 
+</span>
 
+}
 
 
-    </div>
 
-  );
+{
+product.isBestSeller &&
+
+<span className="
+rounded-full
+bg-yellow-100
+px-3
+py-1
+text-xs
+">
+
+Best Seller
+
+</span>
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+<p className="
+mt-4
+font-medium
+">
+
+Stock:
+
+<span className="
+text-green-600
+ml-2
+">
+
+{product.stock}
+
+</span>
+
+
+</p>
+
+
+
+
+
+
+
+
+<div className="
+mt-5
+flex
+gap-3
+">
+
+
+<Link
+
+href={`/admin/products/edit/${product._id}`}
+
+className="
+flex-1
+flex
+justify-center
+items-center
+gap-2
+rounded-xl
+bg-gray-100
+py-3
+"
+
+>
+
+
+<Edit size={16}/>
+
+Edit
+
+
+</Link>
+
+
+
+
+
+<button
+
+onClick={()=>
+deleteProduct(product._id)
+}
+
+className="
+rounded-xl
+bg-red-500
+px-4
+text-white
+"
+
+>
+
+<Trash2 size={18}/>
+
+</button>
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+))
+
+}
+
+
+
+</div>
+
+
+}
+
+
+
+</div>
+
+
+);
+
 
 }

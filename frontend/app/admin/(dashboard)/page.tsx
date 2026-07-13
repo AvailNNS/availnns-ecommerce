@@ -1,353 +1,568 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getDashboardStats } from "@/services/dashboard.service";
+
+import {
+useEffect,
+useState
+} from "react";
+
+
+import {
+Package,
+Users,
+FolderTree,
+ShoppingCart,
+DollarSign,
+Star,
+Flame,
+AlertTriangle,
+Plus,
+Upload,
+ListOrdered
+} from "lucide-react";
+
+
+import Link from "next/link";
+
+
+import {
+getDashboardStats
+} from "@/services/dashboard.service";
+
+
 import useAdminAuth from "@/hooks/useAdminAuth";
 
 
+
 type DashboardStats = {
-  totalProducts: number;
-  totalUsers: number;
-  totalCategories: number;
-  totalOrders: number;
-  totalRevenue: number;
-  featuredProducts: number;
-  bestSellerProducts: number;
-  lowStockProducts: number;
+
+totalProducts:number;
+
+totalUsers:number;
+
+totalCategories:number;
+
+totalOrders:number;
+
+totalRevenue:number;
+
+featuredProducts:number;
+
+bestSellerProducts:number;
+
+lowStockProducts:number;
+
 };
 
 
 
-export default function AdminDashboardPage() {
 
 
-  const { loading: authLoading } = useAdminAuth();
+export default function AdminDashboardPage(){
 
 
-  const [stats, setStats] =
-    useState<DashboardStats | null>(null);
+const {
+loading:authLoading
+}=useAdminAuth();
 
 
-  const [error, setError] =
-    useState("");
 
+const [stats,setStats]=
+useState<DashboardStats|null>(null);
 
 
 
-  useEffect(() => {
+const [error,setError]=
+useState("");
 
 
-    const fetchDashboard = async () => {
 
 
-      try {
 
+useEffect(()=>{
 
-        const token =
-          localStorage.getItem("token");
 
+const loadDashboard=async()=>{
 
 
-        if (!token) {
+try{
 
-          setError("No authentication token found");
 
-          return;
+const token =
+localStorage.getItem("token");
 
-        }
 
+if(!token){
 
+setError("Unauthorized");
 
+return;
 
-        const data =
-          await getDashboardStats(token);
+}
 
 
 
-        console.log(
-          "Dashboard Response:",
-          data
-        );
+const data =
+await getDashboardStats(token);
 
 
 
-        setStats(data);
+setStats(data);
 
 
 
-      } catch (err:any) {
+}catch(err:any){
 
 
-        console.error(
-          "Dashboard Error:",
-          err
-        );
+setError(
+err.message ||
+"Dashboard loading failed"
+);
 
 
-        setError(
-          err.message ||
-          "Failed to load dashboard data"
-        );
+}
 
 
-      }
 
+};
 
-    };
 
 
 
-    if (!authLoading) {
+if(!authLoading){
 
-      fetchDashboard();
+loadDashboard();
 
-    }
+}
 
 
+},[authLoading]);
 
-  }, [authLoading]);
 
 
 
 
 
 
+if(authLoading || !stats){
 
-  // Checking Admin
 
-  if (authLoading) {
+return (
 
+<div className="
+min-h-screen
+flex
+items-center
+justify-center
+">
 
-    return (
+Loading dashboard...
 
-      <div className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-      ">
+</div>
 
-        <div className="text-center">
+);
 
-          <div className="
-            h-10
-            w-10
-            mx-auto
-            rounded-full
-            border-4
-            border-gray-300
-            border-t-black
-            animate-spin
-          " />
 
+}
 
-          <p className="mt-4 text-gray-500">
-            Checking admin access...
-          </p>
 
 
-        </div>
 
 
-      </div>
+if(error){
 
-    );
 
-  }
+return (
 
+<div className="
+rounded-xl
+bg-red-100
+p-5
+text-red-600
+">
 
+{error}
 
+</div>
 
+);
 
 
-  // Error
+}
 
-  if (error) {
 
 
-    return (
 
-      <div className="p-6">
 
 
-        <div className="
-          bg-red-100
-          text-red-600
-          p-4
-          rounded-lg
-        ">
+const cards=[
 
-          {error}
 
+{
+title:"Products",
+value:stats.totalProducts,
+icon:<Package/>,
+color:"bg-blue-50"
+},
 
-        </div>
 
+{
+title:"Customers",
+value:stats.totalUsers,
+icon:<Users/>,
+color:"bg-green-50"
+},
 
-      </div>
 
-    );
+{
+title:"Categories",
+value:stats.totalCategories,
+icon:<FolderTree/>,
+color:"bg-purple-50"
+},
 
-  }
 
+{
+title:"Orders",
+value:stats.totalOrders,
+icon:<ShoppingCart/>,
+color:"bg-orange-50"
+},
 
 
+{
+title:"Revenue",
+value:`$${stats.totalRevenue}`,
+icon:<DollarSign/>,
+color:"bg-yellow-50"
+},
 
 
+{
+title:"Featured",
+value:stats.featuredProducts,
+icon:<Star/>,
+color:"bg-pink-50"
+},
 
 
-  // Loading Data
+{
+title:"Best Sellers",
+value:stats.bestSellerProducts,
+icon:<Flame/>,
+color:"bg-red-50"
+},
 
-  if (!stats) {
 
+{
+title:"Low Stock",
+value:stats.lowStockProducts,
+icon:<AlertTriangle/>,
+color:"bg-red-100"
+},
 
-    return (
 
-      <div className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-      ">
+];
 
 
-        <p className="text-gray-500">
-          Loading dashboard...
-        </p>
 
 
-      </div>
 
-    );
 
-  }
 
+return (
 
+<div className="space-y-10">
 
 
 
 
 
+<div>
 
-  return (
 
+<h1 className="
+text-4xl
+font-bold
+">
 
-    <div className="space-y-8">
+Dashboard
 
+</h1>
 
 
-      <div>
+<p className="
+mt-2
+text-gray-500
+">
 
+Overview of your ecommerce store
 
-        <h1 className="
-          text-4xl
-          font-bold
-        ">
+</p>
 
-          Admin Dashboard
 
-        </h1>
+</div>
 
 
 
-        <p className="
-          text-gray-500
-          mt-2
-        ">
 
-          Manage your store, products and customers
 
-        </p>
 
 
-      </div>
+{/* QUICK ACTION */}
 
 
+<div className="
+grid
+md:grid-cols-3
+gap-5
+">
 
 
+<Link
 
+href="/admin/products/add"
 
-      <div className="
-        grid
-        grid-cols-1
-        sm:grid-cols-2
-        xl:grid-cols-4
-        gap-6
-      ">
+className="
+flex
+items-center
+gap-3
+rounded-2xl
+bg-black
+p-5
+text-white
+hover:scale-[1.02]
+transition
+"
 
+>
 
+<Plus/>
 
+Add Product
 
-        <StatsCard
-          title="Products"
-          icon="📦"
-          value={stats.totalProducts}
-        />
+</Link>
 
 
 
-        <StatsCard
-          title="Users"
-          icon="👥"
-          value={stats.totalUsers}
-        />
 
+<Link
 
+href="/admin/products"
 
-        <StatsCard
-          title="Categories"
-          icon="📂"
-          value={stats.totalCategories}
-        />
+className="
+flex
+items-center
+gap-3
+rounded-2xl
+bg-white
+border
+p-5
+hover:shadow
+"
 
+>
 
+<ListOrdered/>
 
-        <StatsCard
-          title="Orders"
-          icon="🛒"
-          value={stats.totalOrders}
-        />
+Manage Products
 
+</Link>
 
 
-        <StatsCard
-          title="Revenue"
-          icon="💰"
-          value={`$${stats.totalRevenue}`}
-        />
 
 
 
-        <StatsCard
-          title="Featured Products"
-          icon="⭐"
-          value={stats.featuredProducts}
-        />
+<Link
 
+href="/admin/categories"
 
+className="
+flex
+items-center
+gap-3
+rounded-2xl
+bg-white
+border
+p-5
+hover:shadow
+"
 
-        <StatsCard
-          title="Best Sellers"
-          icon="🔥"
-          value={stats.bestSellerProducts}
-        />
+>
 
+<Upload/>
 
+Manage Categories
 
-        <StatsCard
-          title="Low Stock"
-          icon="⚠️"
-          value={stats.lowStockProducts}
-        />
+</Link>
 
 
 
-      </div>
+</div>
 
 
 
-    </div>
 
-  );
+
+
+
+
+{/* STAT CARDS */}
+
+
+<div className="
+grid
+grid-cols-1
+sm:grid-cols-2
+xl:grid-cols-4
+gap-6
+">
+
+
+{
+
+cards.map((card,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+rounded-3xl
+bg-white
+border
+p-6
+shadow-sm
+hover:shadow-xl
+transition
+"
+
+>
+
+
+<div className="
+flex
+justify-between
+items-center
+">
+
+
+<div>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+{card.title}
+
+</p>
+
+
+<h2 className="
+mt-3
+text-3xl
+font-bold
+">
+
+{card.value}
+
+</h2>
+
+
+</div>
+
+
+
+<div className={`
+rounded-2xl
+p-4
+${card.color}
+`}>
+
+{card.icon}
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+</div>
+
+
+
+
+
+
+
+
+{/* ALERT SECTION */}
+
+
+{
+
+stats.lowStockProducts > 0 &&
+
+
+<div className="
+rounded-3xl
+border
+bg-red-50
+p-6
+flex
+items-center
+gap-4
+">
+
+
+<AlertTriangle
+className="text-red-600"
+/>
+
+
+<div>
+
+
+<h3 className="
+font-bold
+text-lg
+">
+
+Low Stock Alert
+
+</h3>
+
+
+<p className="
+text-gray-600
+">
+
+{stats.lowStockProducts}
+products need restocking
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
 
 }
 
@@ -357,92 +572,98 @@ export default function AdminDashboardPage() {
 
 
 
-function StatsCard({
 
-  title,
-
-  icon,
-
-  value,
-
-}:{
-
-  title:string;
-
-  icon:string;
-
-  value:number | string;
-
-}) {
+{/* STORE HEALTH */}
 
 
-
-  return (
-
-
-    <div className="
-      bg-white
-      rounded-2xl
-      shadow-sm
-      border
-      p-6
-      hover:shadow-lg
-      transition
-    ">
+<div className="
+rounded-3xl
+bg-white
+border
+p-8
+">
 
 
-      <div className="
-        flex
-        items-center
-        justify-between
-      ">
+<h2 className="
+text-xl
+font-bold
+mb-6
+">
 
+Store Performance
 
-        <div>
-
-
-          <p className="
-            text-gray-500
-            text-sm
-          ">
-
-            {title}
-
-          </p>
-
-
-
-          <h2 className="
-            text-3xl
-            font-bold
-            mt-3
-          ">
-
-            {value}
-
-          </h2>
-
-
-        </div>
+</h2>
 
 
 
 
-        <div className="text-4xl">
-
-          {icon}
-
-        </div>
-
-
-
-      </div>
+<div className="
+grid
+md:grid-cols-3
+gap-6
+">
 
 
 
-    </div>
+<div>
+
+<p className="text-gray-500">
+Revenue
+</p>
+
+<h3 className="text-2xl font-bold">
+${stats.totalRevenue}
+</h3>
+
+</div>
 
 
-  );
+
+
+<div>
+
+<p className="text-gray-500">
+Best Seller Products
+</p>
+
+<h3 className="text-2xl font-bold">
+{stats.bestSellerProducts}
+</h3>
+
+</div>
+
+
+
+
+<div>
+
+<p className="text-gray-500">
+Inventory Warning
+</p>
+
+<h3 className="text-2xl font-bold">
+{stats.lowStockProducts}
+</h3>
+
+</div>
+
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+);
+
 
 }

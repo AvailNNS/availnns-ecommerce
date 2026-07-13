@@ -6,6 +6,7 @@ import {
   getOrderById,
   cancelOrder,
   updateOrderStatus,
+  getAdminOrders,
 } from "../controllers/order.controller";
 
 
@@ -16,12 +17,14 @@ import authorize from "../middleware/role.middleware";
 const router = Router();
 
 
+
 // Create Order
 router.post(
   "/",
   authMiddleware,
   createOrder
 );
+
 
 
 // User Orders
@@ -32,13 +35,34 @@ router.get(
 );
 
 
-// Single Order
+
+// ==========================
+// ADMIN ORDERS
+// MUST BE BEFORE /:id
+// ==========================
+
 router.get(
-  "/:id",
+  "/admin",
   authMiddleware,
-  getOrderById
+  authorize("admin"),
+  getAdminOrders
 );
+
+
+
+// Admin Update Status
+
+router.put(
+  "/:id/status",
+  authMiddleware,
+  authorize("admin"),
+  updateOrderStatus
+);
+
+
+
 // Cancel Order
+
 router.put(
   "/:id/cancel",
   authMiddleware,
@@ -46,13 +70,16 @@ router.put(
 );
 
 
-// Admin Update Status
-router.put(
-  "/:id/status",
+
+// Single Order
+// KEEP LAST
+
+router.get(
+  "/:id",
   authMiddleware,
-  authorize("admin"),
-  updateOrderStatus
+  getOrderById
 );
+
 
 
 export default router;

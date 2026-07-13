@@ -1,41 +1,65 @@
 export interface ProductImage {
-  url: string;
-  public_id: string;
+  url:string;
+  public_id:string;
 }
 
-export interface Product {
-  _id: string;
-  name: string;
-  slug: string;
-  description: string;
 
-category:
+export interface Product {
+
+  _id:string;
+
+  name:string;
+
+  slug:string;
+
+  description:string;
+
+
+  category:
   | string
   | {
-      _id: string;
-      name: string;
+      _id:string;
+      name:string;
     };
 
-  brand: string;
 
-  price: number;
-  discountPrice: number;
+  brand:string;
 
-  stock: number;
 
-  sku: string;
+  price:number;
 
-  images: ProductImage[];
+  discountPrice:number;
 
-  isFeatured: boolean;
-  isBestSeller: boolean;
-  isPublished: boolean;
 
-  rating: number;
-  numReviews: number;
+  discountPercentage?:number;
 
-  tags: string[];
 
-  createdAt: string;
-  updatedAt: string;
+  stock:number;
+
+
+  sku:string;
+
+
+  images:ProductImage[];
+
+
+  isFeatured:boolean;
+
+  isBestSeller:boolean;
+
+  isPublished:boolean;
+
+
+  rating:number;
+
+  numReviews:number;
+
+
+  tags:string[];
+
+
+  createdAt:string;
+
+  updatedAt:string;
+
 }

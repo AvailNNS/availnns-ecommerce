@@ -1,8 +1,7 @@
 "use client";
-
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
 import {
   Heart,
@@ -13,10 +12,14 @@ import {
   Eye,
 } from "lucide-react";
 
+
 import { Product } from "@/types/product";
 
 import useCart from "@/hooks/useCart";
-import { useWishlist } from "@/context/WishlistContext";
+
+import {
+  useWishlist
+} from "@/context/WishlistContext";
 
 
 
@@ -27,17 +30,12 @@ export default function ProductCard({
 }){
 
 
+
 const {
+ cart,
  addItem,
  updateItem,
 }=useCart();
-
-
-
-const [quantity,setQuantity]=useState(0);
-
-const [hoverImage,setHoverImage]=useState(false);
-
 
 
 
@@ -46,6 +44,14 @@ const {
  removeFromWishlist,
  isInWishlist,
 }=useWishlist();
+
+
+
+
+const [hoverImage,setHoverImage]=
+useState(false);
+
+
 
 
 
@@ -61,6 +67,7 @@ product.images?.[0]?.url ||
 "/placeholder.png";
 
 
+
 const secondImage =
 product.images?.[1]?.url ||
 firstImage;
@@ -69,15 +76,49 @@ firstImage;
 
 
 
+
+const cartItem =
+cart?.items?.find(
+(item:any)=>
+
+item.product?._id === product._id ||
+
+item.product === product._id
+
+);
+
+
+
+const quantity =
+cartItem?.quantity || 0;
+
+
+
+
+
+
+
 const discount =
-product.discountPrice
+product.discountPrice &&
+product.discountPrice < product.price
+
 ?
+
 Math.round(
-((product.price-product.discountPrice)
-/product.price)*100
+
+(
+(product.price - product.discountPrice)
+/ product.price
+
+)*100
+
 )
+
 :
+
 0;
+
+
 
 
 
@@ -85,16 +126,20 @@ Math.round(
 
 const increaseCart = async()=>{
 
-setQuantity(
-prev=>prev+1
-);
+
+if(quantity >= product.stock)
+return;
+
+
 
 await addItem(
 product._id,
 1
 );
 
+
 };
+
 
 
 
@@ -105,23 +150,19 @@ const decreaseCart = async()=>{
 
 if(quantity<=1){
 
-setQuantity(0);
+await updateItem(
+product._id,
+0
+);
 
 return;
 
 }
 
 
-const qty =
-quantity-1;
-
-
-setQuantity(qty);
-
-
 await updateItem(
 product._id,
-qty
+quantity-1
 );
 
 
@@ -131,7 +172,12 @@ qty
 
 
 
+
+
+
+
 return (
+
 
 <div
 
@@ -149,8 +195,6 @@ hover:shadow-2xl
 "
 
 >
-
-
 
 
 
@@ -174,9 +218,11 @@ setHoverImage(false)
 >
 
 
+
 <Link
 href={`/products/${product._id}`}
 >
+
 
 
 <Image
@@ -208,14 +254,17 @@ group-hover:scale-110
 />
 
 
+
 </Link>
 
 
 
 
 
+
+
 {
-discount>0 &&
+discount > 0 &&
 
 <span
 
@@ -244,17 +293,56 @@ text-white
 
 
 
+
+
+{
+product.isBestSeller &&
+
+
+<span
+
+className="
+absolute
+bottom-4
+left-4
+rounded-full
+bg-black
+px-3
+py-1
+text-xs
+text-white
+"
+
+>
+
+Best Seller
+
+</span>
+
+
+}
+
+
+
+
+
+
+
+
 <button
 
 onClick={()=>{
+
 
 if(wish){
 
 removeFromWishlist(
 product._id
-)
+);
+
 
 }else{
+
 
 addToWishlist({
 
@@ -268,7 +356,9 @@ product.price,
 
 image:firstImage
 
+
 });
+
 
 }
 
@@ -296,9 +386,13 @@ size={20}
 className={
 
 wish
+
 ?
+
 "fill-red-500 text-red-500"
+
 :
+
 "text-gray-700"
 
 }
@@ -308,7 +402,14 @@ wish
 
 </button>
 
-// Quick View Button
+
+
+
+
+
+
+
+
 
 <button
 
@@ -324,7 +425,6 @@ bg-white
 px-4
 py-2
 text-sm
-font-medium
 shadow
 opacity-0
 transition
@@ -347,7 +447,6 @@ Quick View
 
 
 
-{/* Cart Button */}
 
 <div
 
@@ -367,27 +466,42 @@ quantity===0 ?
 
 <button
 
+disabled={
+product.stock===0
+}
+
 onClick={increaseCart}
 
-className="
+
+className={`
 flex
 h-12
 w-12
 items-center
 justify-center
 rounded-full
-bg-black
-text-white
 shadow-xl
 transition
 hover:scale-110
-"
+
+${
+product.stock===0
+
+?
+
+"bg-gray-400"
+
+:
+
+"bg-black text-white"
+
+}
+
+`}
 
 >
 
-
 <ShoppingCart size={22}/>
-
 
 </button>
 
@@ -407,16 +521,13 @@ bg-black
 px-4
 py-2
 text-white
-shadow-xl
 "
 
 >
 
 
 <button
-
 onClick={decreaseCart}
-
 >
 
 <Minus size={16}/>
@@ -426,11 +537,9 @@ onClick={decreaseCart}
 
 
 <span
-
 className="
 font-bold
 "
-
 >
 
 {quantity}
@@ -440,6 +549,10 @@ font-bold
 
 
 <button
+
+disabled={
+quantity>=product.stock
+}
 
 onClick={increaseCart}
 
@@ -454,44 +567,13 @@ onClick={increaseCart}
 </div>
 
 
+
 }
 
 
 </div>
 
 
-
-
-
-
-
-
-
-{
-
-product.isBestSeller &&
-
-<span
-
-className="
-absolute
-bottom-4
-left-4
-rounded-full
-bg-black
-px-3
-py-1
-text-xs
-text-white
-"
-
->
-
-Best Seller
-
-</span>
-
-}
 
 
 
@@ -503,9 +585,6 @@ Best Seller
 
 
 
-
-
-{/* PRODUCT INFO */}
 
 
 <div
@@ -519,14 +598,12 @@ p-5
 
 
 
-
 <div
 
 className="
 flex
 items-center
 gap-1
-text-sm
 text-yellow-500
 "
 
@@ -558,10 +635,9 @@ fill="currentColor"
 
 
 <Link
-
 href={`/products/${product._id}`}
-
 >
+
 
 <h3
 
@@ -570,7 +646,6 @@ mt-2
 truncate
 text-lg
 font-semibold
-transition
 hover:text-blue-600
 "
 
@@ -589,10 +664,10 @@ hover:text-blue-600
 
 
 
+
 <p
 
 className="
-mt-1
 text-sm
 text-gray-500
 "
@@ -600,14 +675,26 @@ text-gray-500
 >
 
 {
+
 typeof product.category==="object"
+
 ?
+
 product.category.name
+
 :
+
 ""
+
 }
 
 </p>
+
+
+
+
+
+
 
 
 
@@ -635,8 +722,18 @@ font-bold
 $
 
 {
-product.discountPrice ||
+
+product.discountPrice &&
+product.discountPrice>0
+
+?
+
+product.discountPrice
+
+:
+
 product.price
+
 }
 
 </p>
@@ -644,9 +741,12 @@ product.price
 
 
 
+
 {
 
 product.discountPrice &&
+product.discountPrice>0 &&
+
 
 <p
 
@@ -658,9 +758,11 @@ line-through
 
 >
 
-${product.price}
+$
+{product.price}
 
 </p>
+
 
 }
 
@@ -672,24 +774,52 @@ ${product.price}
 
 
 
+
+
+
+
+{
+
+product.stock>0
+
+?
+
+
 <p
 
 className="
 mt-2
 text-sm
-text-green-600
 font-medium
+text-green-600
 "
 
 >
 
-✓ In Stock
+✓ {product.stock} items available
 
 </p>
 
 
+:
+
+<p
+
+className="
+mt-2
+text-sm
+font-medium
+text-red-500
+"
+
+>
+
+Out of Stock
+
+</p>
 
 
+}
 
 
 

@@ -1,39 +1,32 @@
 "use client";
 
-
 import {
   Star,
   Minus,
   Plus,
   ShoppingCart,
   Truck,
-  ShieldCheck
+  ShieldCheck,
+  BadgeCheck,
 } from "lucide-react";
 
-
 import { useState } from "react";
-
 import { useRouter } from "next/navigation";
 
-
 import { Product } from "@/types/product";
-
 
 import useCart from "@/hooks/useCart";
 
 
 
-
-
 export default function ProductInfo({
-
-product
-
+  product,
 }:{
-
-product:Product;
-
+  product:Product;
 }){
+
+
+const router = useRouter();
 
 
 const [quantity,setQuantity] =
@@ -45,12 +38,36 @@ useState(false);
 
 
 
-const router = useRouter();
-
-
 const {
-  addItem
-} = useCart();
+ addItem
+}=useCart();
+
+
+
+
+
+
+const discountPercentage =
+
+product.discountPrice &&
+product.discountPrice < product.price
+
+?
+
+Math.round(
+
+(
+(product.price - product.discountPrice)
+/
+product.price
+
+)*100
+
+)
+
+:
+
+0;
 
 
 
@@ -87,11 +104,8 @@ router.push("/cart");
 
 
 console.log(
-
-"Add cart error:",
-
+"Cart error",
 error
-
 );
 
 
@@ -116,24 +130,37 @@ setAdding(false);
 
 return (
 
-<div>
+<div className="space-y-6">
+
+
+
 
 
 {
 product.isBestSeller &&
 
-<span className="
+
+<span
+className="
+inline-flex
+items-center
+gap-2
+rounded-full
 bg-black
-text-white
 px-4
 py-2
-rounded-full
 text-sm
-">
+font-semibold
+text-white
+"
+>
+
+<BadgeCheck size={16}/>
 
 Best Seller
 
 </span>
+
 
 }
 
@@ -143,11 +170,15 @@ Best Seller
 
 
 
-<h1 className="
+
+<h1
+className="
+mt-3
 text-4xl
 font-bold
-mt-5
-">
+leading-tight
+"
+>
 
 {product.name}
 
@@ -159,24 +190,28 @@ mt-5
 
 
 
-<div className="
+
+
+<div
+className="
 flex
 items-center
-gap-2
-mt-4
-">
+gap-3
+"
+>
 
 
-<div className="
+<div
+className="
 flex
 text-yellow-500
-">
+"
+>
 
 
 {
-[1,2,3,4,5].map(
 
-(i)=>(
+[1,2,3,4,5].map(i=>(
 
 <Star
 
@@ -188,9 +223,7 @@ fill="currentColor"
 
 />
 
-)
-
-)
+))
 
 }
 
@@ -198,9 +231,12 @@ fill="currentColor"
 </div>
 
 
+
 <span className="text-gray-500">
 
-({product.numReviews} Reviews)
+{product.rating || 5}
+
+({product.numReviews || 0} Reviews)
 
 </span>
 
@@ -215,20 +251,45 @@ fill="currentColor"
 
 
 
-<div className="
+{/* PRICE */}
+
+
+<div
+className="
 flex
-gap-4
 items-center
+gap-4
 mt-6
-">
+"
+>
 
 
-<h2 className="
+
+<h2
+className="
 text-4xl
 font-bold
-">
+"
+>
 
-${product.price}
+
+$
+
+{
+
+product.discountPrice &&
+product.discountPrice > 0
+
+?
+
+product.discountPrice
+
+:
+
+product.price
+
+}
+
 
 </h2>
 
@@ -236,20 +297,56 @@ ${product.price}
 
 
 
+
+
+
 {
+
+product.discountPrice &&
 product.discountPrice > 0 &&
 
-<span className="
+
+<>
+
+
+<span
+className="
+text-xl
 text-gray-400
 line-through
-text-xl
-">
+"
+>
 
-${product.discountPrice}
+$
+{product.price}
 
 </span>
 
+
+
+
+<span
+className="
+rounded-full
+bg-red-100
+px-3
+py-1
+text-sm
+font-semibold
+text-red-600
+"
+>
+
+-{discountPercentage}%
+
+</span>
+
+
+</>
+
+
 }
+
 
 
 
@@ -263,31 +360,41 @@ ${product.discountPrice}
 
 
 
-<div className="
-mt-8
-bg-white
+{/* DESCRIPTION */}
+
+
+
+<div
+className="
 rounded-2xl
+bg-white
 p-6
 shadow-sm
-">
+"
+>
 
 
-<h3 className="
-font-semibold
-text-xl
+<h3
+className="
 mb-3
-">
+text-xl
+font-bold
+"
+>
 
 Description
 
 </h3>
 
 
-<p className="
-text-gray-600
+
+<p
+className="
 leading-8
+text-gray-600
 whitespace-pre-line
-">
+"
+>
 
 {product.description}
 
@@ -304,32 +411,35 @@ whitespace-pre-line
 
 
 
-<div className="
+{/* PRODUCT INFO */}
+
+
+
+<div
+className="
 grid
 grid-cols-2
 gap-4
-mt-6
-">
+"
+>
 
 
-<div className="
+<div
+className="
+rounded-xl
 bg-white
 p-4
-rounded-xl
-">
+"
+>
 
 
-<p className="text-gray-500 text-sm">
-
+<p className="text-sm text-gray-500">
 Stock
-
 </p>
 
 
-<p className="font-semibold">
-
+<p className="font-bold">
 {product.stock}
-
 </p>
 
 
@@ -340,26 +450,25 @@ Stock
 
 
 
-<div className="
+<div
+className="
+rounded-xl
 bg-white
 p-4
-rounded-xl
-">
+"
+>
 
 
-<p className="text-gray-500 text-sm">
-
+<p className="text-sm text-gray-500">
 Category
-
 </p>
 
 
-<p className="font-semibold">
-
+<p className="font-bold">
 
 {
 
-typeof product.category === "object"
+typeof product.category==="object"
 
 ?
 
@@ -371,7 +480,6 @@ product.category.name
 
 }
 
-
 </p>
 
 
@@ -389,42 +497,41 @@ product.category.name
 
 
 
-<div className="
+{/* QUANTITY */}
+
+
+<div
+className="
 flex
 items-center
-gap-4
-mt-8
-">
-
-
+gap-5
+"
+>
 
 
 
 <button
 
+disabled={quantity<=1}
+
 onClick={()=>
 
 
 setQuantity(
-
-Math.max(
-
+prev=>Math.max(
 1,
-
-quantity-1
-
+prev-1
 )
-
 )
 
 }
 
 className="
+rounded-xl
 border
-rounded-lg
 p-3
+disabled:opacity-40
 "
-
 >
 
 <Minus size={18}/>
@@ -436,11 +543,12 @@ p-3
 
 
 
-
-<span className="
+<span
+className="
 text-xl
-font-semibold
-">
+font-bold
+"
+>
 
 {quantity}
 
@@ -451,26 +559,27 @@ font-semibold
 
 
 
-
 <button
+
+disabled={
+quantity>=product.stock
+}
 
 onClick={()=>
 
 
 setQuantity(
-
-quantity+1
-
+prev=>prev+1
 )
 
 }
 
 className="
+rounded-xl
 border
-rounded-lg
 p-3
+disabled:opacity-40
 "
-
 >
 
 <Plus size={18}/>
@@ -489,47 +598,59 @@ p-3
 
 
 
-<div className="
+{/* ACTION */}
+
+
+
+<div
+className="
 flex
 gap-4
-mt-8
-">
-
-
+"
+>
 
 
 
 <button
 
+disabled={
+adding ||
+product.stock===0
+}
 
 onClick={handleAddToCart}
 
-
-disabled={adding}
-
-
 className="
 flex-1
-bg-black
-text-white
-py-4
 rounded-xl
-flex
-items-center
-justify-center
-gap-2
+bg-black
+py-4
 font-semibold
+text-white
+transition
+hover:opacity-90
 disabled:opacity-50
 "
 
 >
 
 
-<ShoppingCart size={20}/>
+<ShoppingCart
+className="inline mr-2"
+size={20}
+/>
 
 
 
 {
+
+product.stock===0
+
+?
+
+"Out of Stock"
+
+:
 
 adding
 
@@ -544,9 +665,7 @@ adding
 }
 
 
-
 </button>
-
 
 
 
@@ -556,12 +675,16 @@ adding
 
 <button
 
+onClick={()=>router.push("/checkout")}
+
 className="
 flex-1
+rounded-xl
 border
 border-black
-rounded-xl
+py-4
 font-semibold
+transition
 hover:bg-black
 hover:text-white
 "
@@ -584,18 +707,27 @@ Buy Now
 
 
 
-<div className="
-mt-8
+{/* FEATURES */}
+
+
+
+<div
+className="
 space-y-4
-">
+rounded-2xl
+bg-white
+p-6
+"
+>
 
 
-
-<div className="
+<div
+className="
 flex
-gap-3
 items-center
-">
+gap-3
+"
+>
 
 <Truck/>
 
@@ -606,13 +738,13 @@ Fast Delivery
 
 
 
-
-
-<div className="
+<div
+className="
 flex
-gap-3
 items-center
-">
+gap-3
+"
+>
 
 <ShieldCheck/>
 
@@ -622,8 +754,9 @@ Secure Payment
 
 
 
-
 </div>
+
+
 
 
 

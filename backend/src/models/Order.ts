@@ -93,7 +93,7 @@ const OrderSchema = new Schema<IOrder>(
     paymentInfo: {
       transactionId: {
         type: String,
-        default: "",
+        default: null,
       },
       paidAt: {
         type: Date,

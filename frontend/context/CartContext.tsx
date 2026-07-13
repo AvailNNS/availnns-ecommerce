@@ -7,11 +7,13 @@ import {
   useState,
 } from "react";
 
+
 import {
   getCart,
   addToCart as addCartAPI,
   updateCart as updateCartAPI,
   removeCartItem as removeCartAPI,
+  clearCart as clearCartAPI,
 } from "@/services/cart.service";
 
 
@@ -24,15 +26,36 @@ type CartContextType = {
 
   loading:boolean;
 
-  addItem:(productId:string, quantity:number)=>Promise<void>;
+  addItem:
+  (
+    productId:string,
+    quantity:number
+  )=>Promise<void>;
 
-  updateItem:(productId:string, quantity:number)=>Promise<void>;
 
-  removeItem:(productId:string)=>Promise<void>;
+  updateItem:
+  (
+    productId:string,
+    quantity:number
+  )=>Promise<void>;
 
-  refreshCart:()=>Promise<void>;
+
+  removeItem:
+  (
+    productId:string
+  )=>Promise<void>;
+
+
+  refreshCart:
+  ()=>Promise<void>;
+
+
+  clearCart:
+  ()=>Promise<void>;
 
 };
+
+
 
 
 
@@ -45,15 +68,27 @@ createContext<CartContextType | undefined>(
 
 
 
+
+
 export function CartProvider({
-  children
+
+children
+
 }:{
-  children:React.ReactNode;
+
+children:React.ReactNode;
+
 }){
 
 
+
 const [cart,setCart] =
-useState<any>(null);
+useState<any>({
+
+items:[]
+
+});
+
 
 
 const [loading,setLoading] =
@@ -61,44 +96,40 @@ useState(true);
 
 
 
+// =============================
+// SET CART DATA
+// =============================
 
-
-
-// =========================
-// GET CART
-// =========================
-
-const refreshCart = async()=>{
-
-
-try{
-
-
-const data =
-await getCart();
-
-
-setCart(
-  data.cart
-);
-
-
-}catch(error){
+const setCartData = (data:any)=>{
 
 
 console.log(
-  "Cart load error:",
-  error
+"🔥 CART DATA:",
+data
 );
 
 
-}finally{
+
+const newCart =
+
+data?.cart ||
+
+data ||
+
+{
+items:[]
+};
 
 
-setLoading(false);
 
+setCart({
 
-}
+...newCart,
+
+items:
+newCart?.items || []
+
+});
 
 
 };
@@ -111,45 +142,65 @@ setLoading(false);
 
 
 
-// =========================
-// LOAD CART
-// =========================
+// =============================
+// GET CART
+// =============================
+const refreshCart = async () => {
+  try {
+    console.log("🚀 refreshCart started");
 
-useEffect(()=>{
+    const data = await getCart();
 
+    console.log("✅ GET CART RESPONSE:");
+    console.log(data);
 
-const token =
-localStorage.getItem("token");
+    setCartData(data);
+  } catch (error) {
+    console.log("❌ GET CART ERROR:");
+    console.log(error);
 
+    setCart({
+      items: [],
+    });
+  } finally {
+    console.log("🏁 refreshCart finished");
 
-if(token){
-
-refreshCart();
-
-}else{
-
-setLoading(false);
-
-}
-
-
-},[]);
-
-
-
-
-
+    setLoading(false);
+  }
+};
 
 
 
+// =============================
+// LOAD
+// =============================
 
-// =========================
-// ADD ITEM
-// =========================
+useEffect(() => {
+  console.log("🟢 CartProvider mounted");
+
+  const token = localStorage.getItem("token");
+
+  console.log("🔑 TOKEN:", token);
+
+  if (token) {
+    refreshCart();
+  } else {
+    console.log("❌ No token found");
+
+    setLoading(false);
+  }
+}, []);
+
+// =============================
+// ADD
+// =============================
 
 const addItem = async(
-  productId:string,
-  quantity:number
+
+productId:string,
+
+quantity:number
+
 )=>{
 
 
@@ -158,15 +209,23 @@ try{
 
 const data =
 await addCartAPI(
-  productId,
-  quantity
+
+productId,
+
+quantity
+
 );
 
 
 
-setCart(
-  data.cart
+console.log(
+"🔥 ADD RESPONSE:",
+data
 );
+
+
+
+setCartData(data);
 
 
 
@@ -174,8 +233,8 @@ setCart(
 
 
 console.log(
-  "Add cart error:",
-  error
+"ADD CART ERROR:",
+error
 );
 
 
@@ -192,13 +251,16 @@ console.log(
 
 
 
-// =========================
-// UPDATE ITEM
-// =========================
+// =============================
+// UPDATE
+// =============================
 
 const updateItem = async(
-  productId:string,
-  quantity:number
+
+productId:string,
+
+quantity:number
+
 )=>{
 
 
@@ -207,15 +269,16 @@ try{
 
 const data =
 await updateCartAPI(
-  productId,
-  quantity
+
+productId,
+
+quantity
+
 );
 
 
 
-setCart(
-  data.cart
-);
+setCartData(data);
 
 
 
@@ -223,8 +286,8 @@ setCart(
 
 
 console.log(
-  "Update cart error:",
-  error
+"UPDATE ERROR:",
+error
 );
 
 
@@ -241,12 +304,14 @@ console.log(
 
 
 
-// =========================
-// REMOVE ITEM
-// =========================
+// =============================
+// REMOVE
+// =============================
 
 const removeItem = async(
-  productId:string
+
+productId:string
+
 )=>{
 
 
@@ -255,14 +320,14 @@ try{
 
 const data =
 await removeCartAPI(
-  productId
+
+productId
+
 );
 
 
 
-setCart(
-  data.cart
-);
+setCartData(data);
 
 
 
@@ -270,8 +335,8 @@ setCart(
 
 
 console.log(
-  "Remove cart error:",
-  error
+"REMOVE ERROR:",
+error
 );
 
 
@@ -288,12 +353,69 @@ console.log(
 
 
 
-// =========================
-// CART PRODUCT COUNT
-// =========================
+// =============================
+// CLEAR
+// =============================
+
+const clearCart = async()=>{
+
+
+try{
+
+
+await clearCartAPI();
+
+
+
+setCart({
+
+items:[]
+
+});
+
+
+
+}catch(error){
+
+
+console.log(
+"CLEAR CART ERROR:",
+error
+);
+
+
+}
+
+
+};
+
+
+
+
+
+
+
+
+
+// =============================
+// TOTAL ITEMS
+// =============================
 
 const totalItems =
-cart?.items?.length || 0;
+
+cart?.items?.reduce(
+
+(
+sum:number,
+item:any
+)=>
+
+sum +
+Number(item.quantity || 0),
+
+0
+
+) || 0;
 
 
 
@@ -323,13 +445,13 @@ removeItem,
 
 refreshCart,
 
+clearCart,
+
 }}
 
 >
 
-
 {children}
-
 
 </CartContext.Provider>
 
@@ -338,7 +460,6 @@ refreshCart,
 
 
 }
-
 
 
 

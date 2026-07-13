@@ -1,327 +1,314 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
+  useParams,
+  useRouter,
+} from "next/navigation";
+
+
+import {
+  ImagePlus,
+  X,
+  Save,
+  Package,
+  Loader2,
+} from "lucide-react";
+
+
+import {
+  getProductById,
   updateProduct,
-  getAdminProducts,
 } from "@/services/product.service";
+
 
 import {
   getAdminCategories,
 } from "@/services/category.service";
 
 
-type ProductImage = {
-  url:string;
-  public_id:string;
-};
-
-
-type Category = {
-  _id:string;
-  name:string;
-};
+import {
+  Category,
+} from "@/types/category";
 
 
 
 export default function EditProductPage(){
 
-  const router = useRouter();
 
-  const params = useParams();
+const router = useRouter();
 
-  const id = params.id as string;
+const params = useParams();
 
+const id = params.id as string;
 
 
-  const [categories,setCategories] =
-    useState<Category[]>([]);
 
 
+const [loading,setLoading] =
+useState(true);
 
-  const [form,setForm] = useState({
 
-    name:"",
-    description:"",
-    price:"",
-    images:[] as ProductImage[],
-    newImages:[] as File[],
-    category:"",
-    stock:"",
-    isFeatured:false,
-    isBestSeller:false,
+const [saving,setSaving] =
+useState(false);
 
-  });
 
+const [error,setError] =
+useState("");
 
 
-  const [preview,setPreview] =
-    useState<string[]>([]);
 
+const [categories,setCategories] =
+useState<Category[]>([]);
 
 
-  const [loading,setLoading] =
-    useState(true);
 
 
-  const [saving,setSaving] =
-    useState(false);
+const [oldImages,setOldImages] =
+useState<any[]>([]);
 
 
-  const [error,setError] =
-    useState("");
 
+const [newImages,setNewImages] =
+useState<File[]>([]);
 
 
 
+const [preview,setPreview] =
+useState<string[]>([]);
 
-  useEffect(()=>{
 
 
-    const loadData = async()=>{
 
 
-      try{
 
+const [form,setForm] =
+useState<any>({
 
-        const token =
-          localStorage.getItem("token");
+name:"",
 
+description:"",
 
-        if(!token) return;
+brand:"",
 
+sku:"",
 
+price:"",
 
-        const products =
-          await getAdminProducts(token);
+discountPrice:"",
 
+stock:"",
 
+category:"",
 
-        const product =
-          products.find(
-            (p:any)=>p._id===id
-          );
+tags:"",
 
+isFeatured:false,
 
+isBestSeller:false,
 
-        const cats =
-          await getAdminCategories(token);
+});
 
 
-        setCategories(cats);
 
 
 
-        if(product){
 
 
-          setForm({
 
-            name:product.name || "",
 
-            description:
-              product.description || "",
+// =========================
+// LOAD PRODUCT
+// =========================
 
 
-            price:
-              String(product.price),
+useEffect(()=>{
 
 
-            images:
-              product.images || [],
+const loadProduct = async()=>{
 
 
-            newImages:[],
+try{
 
 
-            category:
-              typeof product.category==="object"
-              ? product.category._id
-              : product.category,
+const res =
+await getProductById(id);
 
 
-            stock:
-              String(product.stock),
 
+const product =
+res.products?.[0] ||
+res.product;
 
-            isFeatured:
-              product.isFeatured,
 
 
-            isBestSeller:
-              product.isBestSeller,
+if(!product){
 
-          });
+setError(
+"Product not found"
+);
 
+return;
 
-        }
+}
 
 
-      }catch(err){
 
-        console.log(err);
 
-        setError("Failed loading product");
+setForm({
 
+name:
+product.name || "",
 
-      }finally{
 
-        setLoading(false);
+description:
+product.description || "",
 
-      }
 
+brand:
+product.brand || "",
 
-    };
 
+sku:
+product.sku || "",
 
-    loadData();
 
+price:
+product.price || "",
 
-  },[id]);
 
+discountPrice:
+product.discountPrice || "",
 
 
+stock:
+product.stock || "",
 
 
+category:
+typeof product.category === "object"
+?
+product.category._id
+:
+product.category,
 
 
-  const handleChange=(e:any)=>{
+tags:
+product.tags?.join(",") || "",
 
 
-    const {
-      name,
-      value,
-      type,
-      checked
-    }=e.target;
+isFeatured:
+product.isFeatured || false,
 
 
+isBestSeller:
+product.isBestSeller || false,
 
-    setForm(prev=>({
 
-      ...prev,
+});
 
-      [name]:
-        type==="checkbox"
-        ? checked
-        : value
 
-    }));
 
-  };
 
+setOldImages(
+product.images || []
+);
 
 
 
+}catch(err){
 
 
+console.log(err);
 
 
-  // remove old cloudinary image
+setError(
+"Failed to load product"
+);
 
-  const removeOldImage=(public_id:string)=>{
 
 
-    setForm(prev=>({
+}finally{
 
-      ...prev,
 
-      images:
-      prev.images.filter(
-        img=>img.public_id!==public_id
-      )
+setLoading(false);
 
-    }));
 
+}
 
-  };
 
+};
 
 
 
+loadProduct();
 
 
 
+},[id]);
 
-  // new image upload
 
 
-  const handleFileChange=(
-    e:React.ChangeEvent<HTMLInputElement>
-  )=>{
 
 
-    if(!e.target.files)
-      return;
 
 
-    const files =
-      Array.from(e.target.files);
 
 
 
-    setForm(prev=>({
+// =========================
+// LOAD CATEGORIES
+// =========================
 
-      ...prev,
 
-      newImages:[
-        ...prev.newImages,
-        ...files
-      ]
+useEffect(()=>{
 
-    }));
 
+const loadCategories = async()=>{
 
 
-    const urls =
-      files.map(file=>
-        URL.createObjectURL(file)
-      );
+try{
 
 
-    setPreview(prev=>[
-      ...prev,
-      ...urls
-    ]);
+const token =
+localStorage.getItem("token");
 
 
+if(!token)
+return;
 
-  };
 
 
+const data =
+await getAdminCategories(token);
 
 
+setCategories(data);
 
 
 
+}catch(err){
 
-  const removeNewImage=(index:number)=>{
 
+console.log(err);
 
-    setForm(prev=>({
 
-      ...prev,
+}
 
-      newImages:
-      prev.newImages.filter(
-        (_,i)=>i!==index
-      )
 
-    }));
+};
 
 
-    setPreview(prev=>
-      prev.filter(
-        (_,i)=>i!==index
-      )
-    );
 
+loadCategories();
 
-  };
 
 
+},[]);
 
 
 
@@ -329,148 +316,343 @@ export default function EditProductPage(){
 
 
 
-  const handleSubmit=async(
-    e:React.FormEvent
-  )=>{
 
 
-    e.preventDefault();
+// =========================
+// INPUT CHANGE
+// =========================
 
 
+const handleChange =
+(
+e:any
+)=>{
 
-    try{
 
+const {
+name,
+value,
+type,
+checked
+}=e.target;
 
-      setSaving(true);
 
 
+setForm((prev:any)=>({
 
-      const token =
-        localStorage.getItem("token");
+...prev,
 
 
+[name]:
 
-      if(!token)
-        return;
+type==="checkbox"
 
+?
+checked
 
+:
+value
 
-      const data =
-        new FormData();
 
+}));
 
 
-      data.append(
-        "name",
-        form.name
-      );
 
+};
 
-      data.append(
-        "description",
-        form.description
-      );
 
 
-      data.append(
-        "price",
-        form.price
-      );
 
 
-      data.append(
-        "category",
-        form.category
-      );
 
 
-      data.append(
-        "stock",
-        form.stock
-      );
 
 
-      data.append(
-        "isFeatured",
-        String(form.isFeatured)
-      );
+// =========================
+// NEW IMAGE SELECT
+// =========================
 
 
-      data.append(
-        "isBestSeller",
-        String(form.isBestSeller)
-      );
+const handleImages =
+(
+e:React.ChangeEvent<HTMLInputElement>
+)=>{
 
 
+if(!e.target.files)
+return;
 
-      // keep old images
 
-      data.append(
-        "oldImages",
-        JSON.stringify(form.images)
-      );
 
+const files =
+Array.from(e.target.files);
 
 
-      // new images
 
-      form.newImages.forEach(file=>{
+setNewImages(files);
 
-        data.append(
-          "images",
-          file
-        );
 
-      });
 
+setPreview(
 
+files.map(file=>
 
+URL.createObjectURL(file)
 
+)
 
-      await updateProduct(
-        id,
-        data,
-        token
-      );
+);
 
 
 
-      router.push(
-        "/admin/products"
-      );
+};
 
 
 
-    }catch(err){
 
-      console.log(err);
 
-      setError(
-        "Update failed"
-      );
 
 
-    }finally{
 
-      setSaving(false);
 
-    }
+// =========================
+// REMOVE OLD IMAGE
+// =========================
 
 
-  };
+const removeOldImage =
+(index:number)=>{
 
 
+setOldImages(prev=>
 
+prev.filter(
+(_,i)=>i!==index
+)
 
+);
 
 
+};
 
-  if(loading)
-  return (
-    <div className="p-8">
-      Loading...
-    </div>
-  );
+
+
+
+
+
+
+
+
+// =========================
+// REMOVE NEW IMAGE
+// =========================
+
+
+const removeNewImage =
+(index:number)=>{
+
+
+setNewImages(prev=>
+
+prev.filter(
+(_,i)=>i!==index
+
+)
+
+);
+
+
+
+setPreview(prev=>
+
+prev.filter(
+(_,i)=>i!==index
+
+)
+
+);
+
+
+
+};
+ 
+// =========================
+// SUBMIT UPDATE
+// =========================
+
+
+const handleSubmit =
+async(
+e:React.FormEvent
+)=>{
+
+
+e.preventDefault();
+
+
+
+try{
+
+
+setSaving(true);
+
+setError("");
+
+
+
+const token =
+localStorage.getItem("token");
+
+
+
+if(!token){
+
+setError("Unauthorized");
+
+return;
+
+}
+
+
+
+
+const data =
+new FormData();
+
+
+
+
+
+Object.entries(form).forEach(
+([key,value])=>{
+
+
+data.append(
+key,
+String(value)
+);
+
+
+});
+
+
+
+
+
+data.append(
+"oldImages",
+JSON.stringify(oldImages)
+);
+
+
+
+
+
+newImages.forEach(
+(file)=>{
+
+
+data.append(
+"images",
+file
+);
+
+
+});
+
+
+
+
+
+
+await updateProduct(
+
+id,
+
+data,
+
+token
+
+);
+
+
+
+
+
+router.push(
+"/admin/products"
+);
+
+
+
+
+
+}catch(err:any){
+
+
+console.log(
+"UPDATE ERROR:",
+err.response?.data
+);
+
+
+
+setError(
+
+err.response?.data?.message ||
+
+"Update failed"
+
+);
+
+
+
+}finally{
+
+
+setSaving(false);
+
+
+}
+
+
+};
+
+
+
+
+
+
+
+
+
+if(loading){
+
+
+return (
+
+<div className="
+flex
+h-96
+items-center
+justify-center
+gap-3
+">
+
+<Loader2
+className="animate-spin"
+/>
+
+Loading Product...
+
+
+</div>
+
+);
+
+
+}
+
 
 
 
@@ -479,26 +661,72 @@ export default function EditProductPage(){
 
 return (
 
-<div className="max-w-3xl">
+<div className="
+max-w-6xl
+space-y-8
+">
 
 
-<h1 className="text-3xl font-bold mb-6">
+<div>
+
+
+<h1 className="
+text-3xl
+font-bold
+">
+
 Edit Product
+
 </h1>
+
+
+<p className="
+text-gray-500
+">
+
+Update your product details
+
+</p>
+
+
+</div>
+
+
+
+
 
 
 
 <form
+
 onSubmit={handleSubmit}
-className="bg-white shadow rounded-2xl p-8 space-y-5"
+
+className="
+rounded-3xl
+bg-white
+p-8
+shadow-xl
+space-y-8
+"
+
 >
 
 
 
-{error &&
 
-<div className="bg-red-100 text-red-600 p-3 rounded">
+
+{
+error &&
+
+<div className="
+rounded-xl
+bg-red-100
+p-4
+text-red-600
+">
+
 {error}
+
 </div>
 
 }
@@ -508,115 +736,69 @@ className="bg-white shadow rounded-2xl p-8 space-y-5"
 
 
 
+
+{/* BASIC INFO */}
+
+
+<section>
+
+
+<h2 className="
+mb-4
+text-xl
+font-bold
+">
+
+Basic Information
+
+</h2>
+
+
+
+<div className="
+grid
+gap-5
+md:grid-cols-2
+">
+
+
 <input
+
 name="name"
+
 value={form.name}
-onChange={handleChange}
-className="w-full border p-3 rounded"
-placeholder="Name"
-/>
-
-
-
-
-
-<textarea
-
-name="description"
-
-value={form.description}
 
 onChange={handleChange}
 
-className="w-full border p-3 rounded"
+placeholder="Product name"
 
-rows={5}
+className="
+rounded-xl
+border
+p-3
+"
 
 />
 
 
 
-
-
-
-
-{/* OLD IMAGES */}
-
-<div>
-
-<h3 className="font-semibold mb-3">
-Current Images
-</h3>
-
-
-<div className="grid grid-cols-3 gap-4">
-
-
-{
-form.images.map(img=>(
-
-
-<div
-key={img.public_id}
-className="border rounded overflow-hidden"
->
-
-
-<img
-src={img.url}
-className="h-32 w-full object-cover"
-/>
-
-
-<button
-
-type="button"
-
-onClick={()=>
-removeOldImage(img.public_id)
-}
-
-className="w-full bg-red-600 text-white py-2"
-
->
-
-Remove
-
-</button>
-
-
-</div>
-
-
-))
-
-}
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-{/* NEW IMAGE */}
 
 
 <input
 
-type="file"
+name="brand"
 
-multiple
+value={form.brand}
 
-accept="image/*"
+onChange={handleChange}
 
-onChange={handleFileChange}
+placeholder="Brand"
+
+className="
+rounded-xl
+border
+p-3
+"
 
 />
 
@@ -624,50 +806,23 @@ onChange={handleFileChange}
 
 
 
-<div className="grid grid-cols-3 gap-4">
+<input
 
+name="sku"
 
-{
-preview.map((img,index)=>(
+value={form.sku}
 
+onChange={handleChange}
 
-<div key={index}>
+placeholder="SKU"
 
+className="
+rounded-xl
+border
+p-3
+"
 
-<img
-src={img}
-className="h-32 w-full object-cover rounded"
 />
-
-
-<button
-
-type="button"
-
-onClick={()=>
-removeNewImage(index)
-}
-
-className="text-red-600"
-
->
-
-Remove
-
-</button>
-
-
-</div>
-
-
-))
-
-}
-
-
-</div>
-
-
 
 
 
@@ -682,23 +837,30 @@ value={form.category}
 
 onChange={handleChange}
 
-className="w-full border p-3 rounded"
+className="
+rounded-xl
+border
+p-3
+"
 
 >
 
 
 <option value="">
-Select Category
+Select category
 </option>
 
 
 {
+
 categories.map(cat=>(
 
-
 <option
+
 key={cat._id}
+
 value={cat._id}
+
 >
 
 {cat.name}
@@ -711,46 +873,344 @@ value={cat._id}
 }
 
 
+
 </select>
 
 
 
+</div>
+
+
+</section>
 
 
 
 
 
-<div className="grid grid-cols-2 gap-4">
+
+
+
+
+{/* DESCRIPTION */}
+
+
+<section>
+
+
+<h2 className="
+mb-4
+text-xl
+font-bold
+">
+
+Description
+
+</h2>
+
+
+
+<textarea
+
+name="description"
+
+value={form.description}
+
+onChange={handleChange}
+
+rows={5}
+
+className="
+w-full
+rounded-xl
+border
+p-4
+"
+
+placeholder="Product description"
+
+/>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* PRICE */}
+
+
+<section>
+
+
+<h2 className="
+mb-4
+text-xl
+font-bold
+">
+
+Pricing & Stock
+
+</h2>
+
+
+
+<div className="
+grid
+gap-5
+md:grid-cols-3
+">
+
 
 
 <input
 
-name="price"
-
 type="number"
+
+name="price"
 
 value={form.price}
 
 onChange={handleChange}
 
-className="border p-3 rounded"
+placeholder="Regular price"
+
+className="
+rounded-xl
+border
+p-3
+"
 
 />
 
 
+
+
+
 <input
 
-name="stock"
+type="number"
+
+name="discountPrice"
+
+value={form.discountPrice}
+
+onChange={handleChange}
+
+placeholder="Discount price"
+
+className="
+rounded-xl
+border
+p-3
+"
+
+/>
+
+
+
+
+
+<input
 
 type="number"
+
+name="stock"
 
 value={form.stock}
 
 onChange={handleChange}
 
-className="border p-3 rounded"
+placeholder="Stock"
+
+className="
+rounded-xl
+border
+p-3
+"
 
 />
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* IMAGES */}
+
+
+<section>
+
+
+<h2 className="
+mb-4
+text-xl
+font-bold
+">
+
+Product Images
+
+</h2>
+
+
+
+<div className="
+grid
+grid-cols-2
+gap-4
+md:grid-cols-5
+">
+
+
+{
+oldImages.map(
+(img,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+relative
+overflow-hidden
+rounded-xl
+border
+"
+
+>
+
+
+<img
+
+src={img.url}
+
+className="
+h-32
+w-full
+object-cover
+"
+
+/>
+
+
+
+<button
+
+type="button"
+
+onClick={()=>removeOldImage(index)}
+
+className="
+absolute
+right-2
+top-2
+rounded-full
+bg-black
+p-1
+text-white
+"
+
+>
+
+<X size={14}/>
+
+</button>
+
+
+
+</div>
+
+
+))
+
+
+}
+
+
+
+
+
+
+{
+preview.map(
+(img,index)=>(
+
+
+<div
+
+key={index}
+
+className="
+relative
+overflow-hidden
+rounded-xl
+border
+"
+
+>
+
+
+<img
+
+src={img}
+
+className="
+h-32
+w-full
+object-cover
+"
+
+/>
+
+
+
+<button
+
+type="button"
+
+onClick={()=>removeNewImage(index)}
+
+className="
+absolute
+right-2
+top-2
+rounded-full
+bg-black
+p-1
+text-white
+"
+
+>
+
+<X size={14}/>
+
+</button>
+
+
+
+</div>
+
+
+
+))
+
+
+}
 
 
 </div>
@@ -761,8 +1221,72 @@ className="border p-3 rounded"
 
 
 
+<label className="
+mt-5
+flex
+cursor-pointer
+items-center
+justify-center
+gap-3
+rounded-2xl
+border-2
+border-dashed
+p-8
+hover:bg-gray-50
+">
 
-<label>
+
+<ImagePlus/>
+
+Upload New Images
+
+
+
+<input
+
+type="file"
+
+multiple
+
+accept="image/*"
+
+onChange={handleImages}
+
+className="hidden"
+
+/>
+
+
+</label>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* OPTIONS */}
+
+
+<section className="
+flex
+gap-8
+flex-wrap
+">
+
+
+<label className="
+flex
+items-center
+gap-2
+">
+
 
 <input
 
@@ -776,7 +1300,9 @@ onChange={handleChange}
 
 />
 
- Featured
+
+Featured
+
 
 </label>
 
@@ -784,7 +1310,13 @@ onChange={handleChange}
 
 
 
-<label>
+
+<label className="
+flex
+items-center
+gap-2
+">
+
 
 <input
 
@@ -798,9 +1330,15 @@ onChange={handleChange}
 
 />
 
- Best Seller
+
+Best Seller
+
 
 </label>
+
+
+</section>
+
 
 
 
@@ -813,18 +1351,61 @@ onChange={handleChange}
 
 disabled={saving}
 
-className="w-full bg-black text-white py-3 rounded-xl"
+className="
+flex
+w-full
+items-center
+justify-center
+gap-2
+rounded-2xl
+bg-black
+py-4
+font-bold
+text-white
+transition
+hover:opacity-90
+disabled:opacity-50
+"
 
 >
 
+
 {
+
 saving
-?"Updating..."
-:"Update Product"
+
+?
+
+<>
+
+<Loader2
+size={18}
+className="animate-spin"
+/>
+
+Updating...
+
+</>
+
+
+:
+
+<>
+
+<Save size={18}/>
+
+Save Changes
+
+</>
+
+
 }
 
 
+
 </button>
+
+
 
 
 
@@ -833,7 +1414,7 @@ saving
 
 </div>
 
-);
 
+);
 
 }
