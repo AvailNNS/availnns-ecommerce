@@ -1,32 +1,34 @@
 "use client";
 
-
 import {
-  useState
+  useMemo,
+  useState,
 } from "react";
 
 import {
-  useRouter
+  useRouter,
 } from "next/navigation";
 
 
-import {
-  MapPin,
-  CreditCard,
-  Wallet,
-  Banknote,
-  ShoppingBag,
-  Loader2
-} from "lucide-react";
+import CheckoutHeader from "@/components/checkout/CheckoutHeader";
+import CheckoutStepper from "@/components/checkout/CheckoutStepper";
+import ShippingForm from "@/components/checkout/ShippingForm";
+import DeliveryOptions from "@/components/checkout/DeliveryOptions";
+import PaymentMethods from "@/components/checkout/PaymentMethods";
+import CouponBox from "@/components/checkout/CouponBox";
+import OrderSummary from "@/components/checkout/OrderSummary";
+import SecureCheckout from "@/components/checkout/SecureCheckout";
 
 
 import useCart from "@/hooks/useCart";
 
-
 import {
-  createOrder
+  createOrder,
 } from "@/services/order.service";
 
+import {
+  Loader2,
+} from "lucide-react";
 
 
 
@@ -39,7 +41,7 @@ const router = useRouter();
 const {
  cart,
  clearCart,
- loading:cartLoading
+ loading:cartLoading,
 }=useCart();
 
 
@@ -48,26 +50,73 @@ const items = cart?.items || [];
 
 
 
-const [loading,setLoading]=useState(false);
 
-const [error,setError]=useState("");
+const [loading,setLoading]
+=
+useState(false);
+
+
+
+const [error,setError]
+=
+useState("");
+
+
+
+const [coupon,setCoupon]
+=
+useState("");
+
+
+
+const [discount,setDiscount]
+=
+useState(0);
+
+
+
+const [applied,setApplied]
+=
+useState(false);
+
+
+
+const [couponError,setCouponError]
+=
+useState("");
+
+
+
+const [delivery,setDelivery]
+=
+useState<
+"standard" | "express"
+>("standard");
 
 
 
 
-const [form,setForm]=useState({
+const [form,setForm]
+=
+useState({
 
 name:"",
+
 phone:"",
+
 address:"",
+
 city:"",
+
 state:"",
+
 postalCode:"",
+
 country:"Saudi Arabia",
 
 paymentMethod:"COD",
 
-transactionId:""
+transactionId:"",
 
 });
 
@@ -85,12 +134,14 @@ setForm(prev=>({
 
 ...prev,
 
-[e.target.name]:e.target.value
+[e.target.name]:
+e.target.value
 
 }));
 
 
 };
+
 
 
 
@@ -116,18 +167,19 @@ paymentMethod:method
 
 
 
+const subtotal =
+useMemo(()=>{
 
 
-const subtotal = items.reduce(
+return items.reduce(
 
 (sum:number,item:any)=>
 
 sum +
 
 (
-Number(item.price || 0)
-*
-Number(item.quantity || 1)
+item.price *
+item.quantity
 ),
 
 0
@@ -135,11 +187,21 @@ Number(item.quantity || 1)
 );
 
 
+},[items]);
+
+
+
+
 
 
 
 const shipping =
-subtotal > 0 ? 10 : 0;
+delivery==="express"
+?
+25
+:
+10;
+
 
 
 
@@ -148,8 +210,12 @@ subtotal * 0.05;
 
 
 
+
 const total =
-subtotal + shipping + tax;
+subtotal +
+shipping +
+tax -
+discount;
 
 
 
@@ -158,9 +224,52 @@ subtotal + shipping + tax;
 
 
 
+const applyCoupon=()=>{
 
 
-const handleSubmit = async(
+if(coupon.toUpperCase()==="SAVE10"){
+
+
+const value =
+subtotal * 0.10;
+
+
+setDiscount(value);
+
+setApplied(true);
+
+setCouponError("");
+
+
+}
+
+else{
+
+
+setDiscount(0);
+
+setApplied(false);
+
+setCouponError(
+"Invalid coupon code"
+);
+
+
+}
+
+
+
+};
+
+
+
+
+
+
+
+
+const handleSubmit =
+async(
 e:React.FormEvent
 )=>{
 
@@ -174,6 +283,7 @@ try{
 setLoading(true);
 
 setError("");
+
 
 
 
@@ -191,10 +301,7 @@ return;
 
 
 
-
-
 const orderData={
-
 
 
 items:items.map(
@@ -210,9 +317,6 @@ price:item.price
 })
 
 ),
-
-
-
 
 
 
@@ -251,21 +355,21 @@ form.country
 
 
 
-
-
-
 paymentMethod:
 form.paymentMethod,
-
 
 
 transactionId:
 form.transactionId || null,
 
 
+couponCode:
+coupon || null,
+
 
 totalPrice:
 total
+
 
 
 };
@@ -274,15 +378,8 @@ total
 
 
 
-console.log(
-"ORDER DATA:",
-orderData
-);
 
-
-
-
-
+const res =
 await createOrder(
 orderData
 );
@@ -295,37 +392,42 @@ await clearCart();
 
 
 
+
+
 router.push(
-"/checkout/success"
+
+`/checkout/success?order=${res.order._id}`
+
 );
 
 
 
-}catch(err:any){
 
+}
 
-console.log(
-"ORDER ERROR:",
-err
-);
+catch(err:any){
 
 
 setError(
 
 err?.response?.data?.message ||
 
-"Order creation failed"
+"Order failed"
 
 );
 
 
-}finally{
+
+}
+
+finally{
 
 
 setLoading(false);
 
 
 }
+
 
 
 };
@@ -349,7 +451,11 @@ items-center
 justify-center
 ">
 
-<Loader2 className="animate-spin"/>
+
+<Loader2
+className="animate-spin"
+/>
+
 
 </div>
 
@@ -364,12 +470,11 @@ justify-center
 
 
 
-
 return (
 
-<div className="
+<main className="
 min-h-screen
-bg-gray-50
+bg-zinc-50
 py-10
 ">
 
@@ -381,16 +486,10 @@ px-5
 ">
 
 
+<CheckoutHeader/>
 
-<h1 className="
-text-4xl
-font-bold
-mb-8
-">
 
-Checkout
-
-</h1>
+<CheckoutStepper/>
 
 
 
@@ -402,18 +501,15 @@ onSubmit={handleSubmit}
 
 className="
 grid
-lg:grid-cols-3
 gap-8
+lg:grid-cols-3
 "
+
 
 
 >
 
 
-
-
-
-{/* LEFT */}
 
 
 <div className="
@@ -422,59 +518,11 @@ space-y-6
 ">
 
 
+<ShippingForm
 
+form={form}
 
-
-<div className="
-bg-white
-rounded-3xl
-shadow
-p-8
-">
-
-
-<h2 className="
-text-xl
-font-bold
-flex
-items-center
-gap-2
-mb-6
-">
-
-<MapPin/>
-
-Shipping Address
-
-</h2>
-
-
-
-
-
-<div className="
-space-y-4
-">
-
-
-<input
-
-name="name"
-
-placeholder="Full Name"
-
-value={form.name}
-
-onChange={handleChange}
-
-className="
-w-full
-border
-rounded-xl
-p-3
-"
-
-required
+handleChange={handleChange}
 
 />
 
@@ -482,24 +530,11 @@ required
 
 
 
-<input
+<DeliveryOptions
 
-name="phone"
+delivery={delivery}
 
-placeholder="Phone Number"
-
-value={form.phone}
-
-onChange={handleChange}
-
-className="
-w-full
-border
-rounded-xl
-p-3
-"
-
-required
+setDelivery={setDelivery}
 
 />
 
@@ -507,431 +542,51 @@ required
 
 
 
-<input
+<PaymentMethods
 
-name="address"
-
-placeholder="Address"
-
-value={form.address}
-
-onChange={handleChange}
-
-className="
-w-full
-border
-rounded-xl
-p-3
-"
-
-required
-
-/>
-
-
-
-
-
-
-
-<div className="
-grid
-md:grid-cols-3
-gap-4
-">
-
-
-<input
-
-name="city"
-
-placeholder="City"
-
-value={form.city}
-
-onChange={handleChange}
-
-className="
-border
-rounded-xl
-p-3
-"
-
-/>
-
-
-
-
-<input
-
-name="state"
-
-placeholder="State"
-
-value={form.state}
-
-onChange={handleChange}
-
-className="
-border
-rounded-xl
-p-3
-"
-
-/>
-
-
-
-
-<input
-
-name="postalCode"
-
-placeholder="Postal Code"
-
-value={form.postalCode}
-
-onChange={handleChange}
-
-className="
-border
-rounded-xl
-p-3
-"
-
-/>
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-{/* PAYMENT */}
-
-
-
-<div className="
-bg-white
-rounded-3xl
-shadow
-p-8
-">
-
-
-<h2 className="
-text-xl
-font-bold
-flex
-gap-2
-mb-5
-">
-
-<CreditCard/>
-
-Payment Method
-
-</h2>
-
-
-
-
-<div className="
-grid
-grid-cols-2
-md:grid-cols-4
-gap-4
-">
-
-
-
-{
-[
-
-["COD","Cash",Banknote],
-
-["CARD","Card",CreditCard],
-
-["BKASH","bKash",Wallet],
-
-["NAGAD","Nagad",Wallet]
-
-].map(
-([value,label,Icon]:any)=>(
-
-
-<button
-
-type="button"
-
-key={value}
-
-onClick={()=>selectPayment(value)}
-
-className={`
-border
-rounded-2xl
-p-5
-flex
-flex-col
-items-center
-gap-2
-
-${
-form.paymentMethod===value
-?
-"bg-black text-white"
-:
-"bg-white"
+paymentMethod={
+form.paymentMethod
 }
 
-`}
-
->
-
-
-<Icon size={25}/>
-
-{label}
-
-
-</button>
-
-
-)
-
-)
-
-
+transactionId={
+form.transactionId
 }
 
+selectPayment={
+selectPayment
+}
 
-
-
-</div>
-
-
-
-
-
-
-
-{
-form.paymentMethod!=="COD" &&
-
-<input
-
-name="transactionId"
-
-placeholder="Transaction ID"
-
-value={form.transactionId}
-
-onChange={handleChange}
-
-className="
-mt-5
-w-full
-border
-rounded-xl
-p-3
-"
+handleChange={
+handleChange
+}
 
 />
 
 
-}
 
 
 
+<CouponBox
 
+coupon={coupon}
 
-</div>
+setCoupon={setCoupon}
 
+discount={discount}
 
+applied={applied}
 
+applyCoupon={applyCoupon}
 
+couponError={couponError}
 
+/>
 
-</div>
 
 
 
 
-
-
-
-
-
-{/* SUMMARY */}
-
-
-
-<div>
-
-
-<div className="
-bg-white
-rounded-3xl
-shadow
-p-6
-sticky
-top-5
-">
-
-
-
-<h2 className="
-font-bold
-text-xl
-flex
-gap-2
-mb-5
-">
-
-<ShoppingBag/>
-
-Order Summary
-
-</h2>
-
-
-
-
-
-
-{
-items.map(
-(item:any)=>(
-
-
-<div
-
-key={item._id}
-
-className="
-flex
-justify-between
-mb-3
-text-sm
-"
-
->
-
-
-<span>
-
-{item.product.name}
-
-× {item.quantity}
-
-</span>
-
-
-
-<span>
-
-${item.price * item.quantity}
-
-</span>
-
-
-</div>
-
-
-)
-
-)
-
-}
-
-
-
-
-
-<hr className="my-5"/>
-
-
-
-<div className="
-space-y-3
-">
-
-
-<div className="flex justify-between">
-
-<span>Subtotal</span>
-
-<span>${subtotal.toFixed(2)}</span>
-
-</div>
-
-
-
-
-<div className="flex justify-between">
-
-<span>Shipping</span>
-
-<span>${shipping}</span>
-
-</div>
-
-
-
-
-
-<div className="flex justify-between">
-
-<span>Tax</span>
-
-<span>${tax.toFixed(2)}</span>
-
-</div>
-
-
-
-
-
-<div className="
-flex
-justify-between
-font-bold
-text-xl
-">
-
-
-<span>Total</span>
-
-<span>
-
-${total.toFixed(2)}
-
-</span>
-
-
-</div>
-
-
-
-</div>
-
-
+<SecureCheckout/>
 
 
 
@@ -941,8 +596,10 @@ ${total.toFixed(2)}
 error &&
 
 <p className="
-text-red-500
-mt-5
+rounded-xl
+bg-red-50
+p-4
+text-red-600
 ">
 
 {error}
@@ -953,53 +610,38 @@ mt-5
 
 
 
-
-
-
-
-<button
-
-disabled={
-loading ||
-items.length===0
-}
-
-className="
-mt-6
-w-full
-bg-black
-text-white
-py-4
-rounded-2xl
-font-bold
-disabled:opacity-50
-"
-
->
-
-
-{
-loading
-?
-"Processing..."
-:
-"Place Order"
-}
-
-
-</button>
-
-
-
-
-
-
-
 </div>
 
 
 
+
+
+
+
+<div>
+
+
+<OrderSummary
+
+items={items}
+
+subtotal={subtotal}
+
+shipping={shipping}
+
+tax={tax}
+
+discount={discount}
+
+total={total}
+
+loading={loading}
+
+/>
+
+
 </div>
+
 
 
 
@@ -1009,11 +651,12 @@ loading
 
 
 
+
+
 </div>
 
 
-
-</div>
+</main>
 
 
 );

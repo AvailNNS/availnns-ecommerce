@@ -19,7 +19,36 @@ export const createOrder = async (
 
 };
 
+// =========================
+// GET MY ORDERS
+// =========================
 
+export const getMyOrders = async()=>{
+
+
+  const res = await api.get(
+    "/orders"
+  );
+
+
+  return res.data.orders || [];
+
+
+};
+
+// =========================
+// GET MY ORDERS by id
+// =========================
+
+export const getOrderById = async(
+  id:string
+)=>{
+  const res = await api.get(
+    `/orders/${id}`
+  );
+  return res.data.order || [];
+
+};
 
 
 // =========================
