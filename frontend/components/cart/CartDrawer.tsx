@@ -1,17 +1,20 @@
 "use client";
 
 
+import Image from "next/image";
 import Link from "next/link";
 
 import {
-X,
-ShoppingBag
+  X,
+  Minus,
+  Plus,
+  Trash2,
+  ShoppingBag,
+  ArrowRight,
 } from "lucide-react";
 
 
 import useCart from "@/hooks/useCart";
-
-import CartItem from "./CartItem";
 
 
 
@@ -25,112 +28,151 @@ onClose:()=>void;
 
 
 
+
+
 export default function CartDrawer({
+
 open,
-onClose
+
+onClose,
+
 }:Props){
 
 
 
 const {
+
 cart,
-loading
+totalItems,
+updateItem,
+removeItem,
+
 }=useCart();
 
 
 
-const items = cart?.items ?? [];
 
 
 
-const subtotal = items.reduce(
-(total:number,item:any)=>{
-
-const price =
-item?.product?.discountPrice ||
-item?.product?.price ||
-item?.price ||
-0;
+if(!open)
+return null;
 
 
-return total + price * (item.quantity || 1);
 
-},
-0
-);
+
+
+
+const subtotal =
+Number(cart?.total || 0);
+
+
+
 
 
 
 return (
 
+
 <>
 
+
+{/* OVERLAY */}
 
 <div
 
 onClick={onClose}
 
-className={`
+className="
 fixed
 inset-0
-z-40
 bg-black/40
-transition
-${open 
-? "visible opacity-100"
-:"invisible opacity-0"
-}
-`}
+z-40
+backdrop-blur-sm
+"
 
 />
 
 
 
-<aside
 
-className={`
+
+
+
+{/* DRAWER */}
+
+
+<div
+
+className="
 fixed
 right-0
 top-0
 z-50
-flex
 h-screen
 w-full
 max-w-md
-flex-col
 bg-white
 shadow-2xl
-transition-transform
-duration-300
-
-${open
-?"translate-x-0"
-:"translate-x-full"
-}
-
-`}
+flex
+flex-col
+"
 
 >
 
 
-<div className="
+
+{/* HEADER */}
+
+
+<div
+
+className="
 flex
 items-center
 justify-between
 border-b
-px-6
-py-5
-">
+p-5
+"
+
+>
 
 
-<h2 className="
+<div>
+
+
+<h2
+
+className="
 text-xl
-font-bold
-">
+font-black
+"
+
+>
 
 Shopping Cart
 
 </h2>
+
+
+
+<p
+
+className="
+text-sm
+text-gray-500
+mt-1
+"
+
+>
+
+{totalItems} items
+
+</p>
+
+
+</div>
+
+
 
 
 
@@ -151,154 +193,560 @@ hover:bg-gray-100
 </button>
 
 
+
 </div>
 
 
 
 
 
-<div className="
+
+{/* ITEMS */}
+
+
+<div
+
+className="
 flex-1
 overflow-y-auto
-px-6
-">
+p-5
+space-y-4
+"
+
+>
+
 
 
 {
-loading ?
+cart?.items?.length===0 ?
 
-<div className="
-py-10
-text-center
-">
+(
 
-Loading...
+<div
 
-</div>
-
-
-:
-
-items.length===0 ?
-
-
-<div className="
-flex
+className="
 h-full
+flex
 flex-col
 items-center
 justify-center
 text-center
-">
+"
 
+>
+
+
+<div
+
+className="
+h-24
+w-24
+rounded-full
+bg-gray-100
+flex
+items-center
+justify-center
+"
+
+>
 
 <ShoppingBag
-size={60}
-className="text-gray-300"
+size={40}
+className="
+text-gray-400
+"
+
 />
 
+</div>
 
-<h3 className="
-mt-4
-text-lg
-font-semibold
-">
+
+
+
+<h3
+
+className="
+mt-5
+font-bold
+text-xl
+"
+
+>
 
 Your cart is empty
 
 </h3>
 
 
+<Link
 
-<p className="
-mt-2
-text-sm
-text-gray-500
-">
+href="/shop"
 
-Add some products to start shopping.
+onClick={onClose}
 
-</p>
+className="
+mt-5
+rounded-xl
+bg-black
+px-6
+py-3
+text-white
+"
+
+>
+
+Shop Now
+
+</Link>
+
 
 
 </div>
 
 
+)
+
+
 :
 
 
-<div className="
-space-y-3
-py-4
-">
 
 
-{
-items.map((item:any)=>(
 
-<CartItem
+cart.items.map((item:any)=>(
 
-key={
-item?._id ||
-item?.product?._id
+
+<div
+
+key={item.product._id}
+
+className="
+flex
+gap-4
+rounded-xl
+border
+p-4
+"
+
+>
+
+
+{/* IMAGE */}
+
+
+<div
+
+className="
+relative
+h-20
+w-20
+rounded-lg
+overflow-hidden
+bg-gray-100
+"
+
+>
+
+
+<Image
+
+src={
+item.product?.images?.[0]?.url ||
+"/placeholder.png"
 }
 
-item={item}
+alt={item.product.name}
+
+fill
+
+className="
+object-cover
+"
 
 />
+
+
+</div>
+
+
+
+
+
+{/* INFO */}
+
+
+<div
+
+className="
+flex-1
+"
+
+>
+
+
+<h3
+
+className="
+font-semibold
+text-sm
+line-clamp-2
+"
+
+>
+
+{item.product.name}
+
+</h3>
+
+
+
+
+<p
+
+className="
+font-bold
+mt-1
+"
+
+>
+
+${item.price}
+
+</p>
+
+
+
+
+
+
+<div
+
+className="
+mt-3
+flex
+items-center
+justify-between
+"
+
+>
+
+
+
+<div
+
+className="
+flex
+items-center
+border
+rounded-full
+"
+
+>
+
+
+<button
+
+onClick={()=>{
+
+updateItem(
+
+item.product._id,
+
+Math.max(
+1,
+item.quantity-1
+)
+
+)
+
+}}
+
+className="
+h-8
+w-8
+flex
+items-center
+justify-center
+"
+
+>
+
+<Minus size={14}/>
+
+</button>
+
+
+
+<span
+
+className="
+px-3
+text-sm
+font-bold
+"
+
+>
+
+{item.quantity}
+
+</span>
+
+
+
+
+
+<button
+
+onClick={()=>{
+
+updateItem(
+
+item.product._id,
+
+item.quantity+1
+
+)
+
+}}
+
+className="
+h-8
+w-8
+flex
+items-center
+justify-center
+"
+
+>
+
+<Plus size={14}/>
+
+</button>
+
+
+</div>
+
+
+
+
+
+<button
+
+onClick={()=>removeItem(item.product._id)}
+
+className="
+text-red-500
+"
+
+>
+
+<Trash2 size={18}/>
+
+</button>
+
+
+
+
+</div>
+
+
+
+</div>
+
+
+
+</div>
+
 
 ))
 
 }
 
 
-</div>
-
-
-}
 
 
 </div>
 
+{/* FOOTER */}
 
+<div
 
-
-
-{
-items.length>0 &&
-
-<div className="
+className="
 border-t
-p-6
-">
+p-5
+bg-white
+"
+
+>
 
 
-<div className="
+{/* SHIPPING INFO */}
+
+
+<div
+
+className="
+rounded-xl
+bg-gray-50
+p-4
 mb-5
+"
+
+>
+
+
+<p
+
+className="
+text-sm
+text-gray-500
+"
+
+>
+
+Free Shipping on orders over $100
+
+</p>
+
+
+
+<div
+
+className="
+mt-3
+h-2
+rounded-full
+bg-gray-200
+overflow-hidden
+"
+
+>
+
+
+<div
+
+className="
+h-full
+bg-black
+transition-all
+"
+
+style={{
+
+width:`${
+Math.min(
+(subtotal/100)*100,
+100
+)
+}%`
+
+}}
+
+
+/>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+{/* PRICE */}
+
+
+<div
+
+className="
 flex
 justify-between
-">
+mb-5
+"
 
-<span className="
-text-gray-500
-">
+>
+
+
+<span
+
+className="
+font-medium
+"
+
+>
 
 Subtotal
 
 </span>
 
 
-<span className="
-text-2xl
-font-bold
-">
+
+<span
+
+className="
+text-xl
+font-black
+"
+
+>
 
 ${subtotal.toFixed(2)}
 
 </span>
 
 
+
 </div>
+
+
+
+
+
+
+
+
+{/* CHECKOUT */}
+
+
+
+<Link
+
+href="/cart"
+
+onClick={onClose}
+
+className="
+flex
+items-center
+justify-center
+gap-2
+w-full
+rounded-xl
+bg-black
+py-4
+text-white
+font-bold
+hover:bg-zinc-800
+transition
+"
+
+>
+
+View Cart
+
+<ArrowRight size={18}/>
+
+</Link>
+
+
+
 
 
 
@@ -310,15 +758,17 @@ href="/checkout"
 onClick={onClose}
 
 className="
+mt-3
 flex
-w-full
+items-center
 justify-center
+w-full
 rounded-xl
-bg-black
+border
 py-3
 font-semibold
-text-white
-hover:bg-zinc-800
+hover:bg-gray-50
+transition
 "
 
 >
@@ -328,16 +778,24 @@ Checkout
 </Link>
 
 
+
+
+
+
+
 </div>
 
-}
 
 
-</aside>
+
+
+</div>
 
 
 </>
 
+
 );
+
 
 }

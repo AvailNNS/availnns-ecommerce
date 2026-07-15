@@ -26,10 +26,13 @@ type CartContextType = {
 
   loading:boolean;
 
+  cartLoading:boolean;
+
+
   addItem:
   (
     productId:string,
-    quantity:number
+    quantity?:number
   )=>Promise<void>;
 
 
@@ -46,11 +49,11 @@ type CartContextType = {
   )=>Promise<void>;
 
 
-  refreshCart:
+  clearCart:
   ()=>Promise<void>;
 
 
-  clearCart:
+  refreshCart:
   ()=>Promise<void>;
 
 };
@@ -58,64 +61,47 @@ type CartContextType = {
 
 
 
-
 const CartContext =
-createContext<CartContextType | undefined>(
-  undefined
-);
-
-
+createContext<CartContextType | null>(null);
 
 
 
 
 
 export function CartProvider({
-
 children
-
 }:{
-
 children:React.ReactNode;
-
 }){
 
 
-
-const [cart,setCart] =
-useState<any>({
-
+const [cart,setCart]=useState<any>({
 items:[]
-
 });
 
 
 
-const [loading,setLoading] =
-useState(true);
+const [loading,setLoading]=useState(true);
 
 
 
-// =============================
-// SET CART DATA
-// =============================
-
-const setCartData = (data:any)=>{
+const [cartLoading,setCartLoading]=useState(false);
 
 
-console.log(
-"🔥 CART DATA:",
-data
-);
 
+
+
+// ==========================
+// SET CART
+// ==========================
+
+
+const updateCartState=(data:any)=>{
 
 
 const newCart =
-
 data?.cart ||
-
 data ||
-
 {
 items:[]
 };
@@ -127,7 +113,7 @@ setCart({
 ...newCart,
 
 items:
-newCart?.items || []
+newCart.items || []
 
 });
 
@@ -139,103 +125,145 @@ newCart?.items || []
 
 
 
+// ==========================
+// FETCH CART
+// ==========================
 
 
+const refreshCart=async()=>{
 
-// =============================
-// GET CART
-// =============================
-const refreshCart = async () => {
-  try {
-    console.log("🚀 refreshCart started");
 
-    const data = await getCart();
+try{
 
-    console.log("✅ GET CART RESPONSE:");
-    console.log(data);
 
-    setCartData(data);
-  } catch (error) {
-    console.log("❌ GET CART ERROR:");
-    console.log(error);
+const data =
+await getCart();
 
-    setCart({
-      items: [],
-    });
-  } finally {
-    console.log("🏁 refreshCart finished");
 
-    setLoading(false);
-  }
+updateCartState(data);
+
+
+}
+catch(error){
+
+
+console.log(
+"GET CART ERROR",
+error
+);
+
+
+setCart({
+items:[]
+});
+
+
+}
+
+finally{
+
+
+setLoading(false);
+
+
+}
+
+
 };
 
 
 
-// =============================
-// LOAD
-// =============================
 
-useEffect(() => {
-  console.log("🟢 CartProvider mounted");
 
-  const token = localStorage.getItem("token");
 
-  console.log("🔑 TOKEN:", token);
 
-  if (token) {
-    refreshCart();
-  } else {
-    console.log("❌ No token found");
+// ==========================
+// INITIAL LOAD
+// ==========================
 
-    setLoading(false);
-  }
-}, []);
 
-// =============================
-// ADD
-// =============================
+useEffect(()=>{
 
-const addItem = async(
+
+const token =
+localStorage.getItem(
+"token"
+);
+
+
+
+if(token){
+
+refreshCart();
+
+}
+else{
+
+setLoading(false);
+
+}
+
+
+
+},[]);
+
+
+
+
+
+
+
+
+
+// ==========================
+// ADD ITEM
+// ==========================
+
+
+const addItem=async(
 
 productId:string,
 
-quantity:number
+quantity:number=1
 
 )=>{
 
 
 try{
+
+
+setCartLoading(true);
+
 
 
 const data =
 await addCartAPI(
-
 productId,
-
 quantity
-
 );
 
 
 
-console.log(
-"🔥 ADD RESPONSE:",
-data
-);
+updateCartState(data);
 
 
 
-setCartData(data);
-
-
-
-}catch(error){
+}
+catch(error){
 
 
 console.log(
-"ADD CART ERROR:",
+"ADD CART ERROR",
 error
 );
+
+
+}
+
+finally{
+
+
+setCartLoading(false);
 
 
 }
@@ -251,11 +279,13 @@ error
 
 
 
-// =============================
-// UPDATE
-// =============================
 
-const updateItem = async(
+// ==========================
+// UPDATE ITEM
+// ==========================
+
+
+const updateItem=async(
 
 productId:string,
 
@@ -267,31 +297,42 @@ quantity:number
 try{
 
 
+setCartLoading(true);
+
+
+
 const data =
 await updateCartAPI(
-
 productId,
-
 quantity
-
 );
 
 
 
-setCartData(data);
+updateCartState(data);
 
 
 
-}catch(error){
+}
+catch(error){
 
 
 console.log(
-"UPDATE ERROR:",
+"UPDATE CART ERROR",
 error
 );
 
 
 }
+
+finally{
+
+
+setCartLoading(false);
+
+
+}
+
 
 
 };
@@ -304,11 +345,12 @@ error
 
 
 
-// =============================
-// REMOVE
-// =============================
+// ==========================
+// REMOVE ITEM
+// ==========================
 
-const removeItem = async(
+
+const removeItem=async(
 
 productId:string
 
@@ -318,26 +360,37 @@ productId:string
 try{
 
 
+setCartLoading(true);
+
+
+
 const data =
 await removeCartAPI(
-
 productId
-
 );
 
 
 
-setCartData(data);
+updateCartState(data);
 
 
 
-}catch(error){
+}
+catch(error){
 
 
 console.log(
-"REMOVE ERROR:",
+"REMOVE CART ERROR",
 error
 );
+
+
+}
+
+finally{
+
+
+setCartLoading(false);
 
 
 }
@@ -353,38 +406,48 @@ error
 
 
 
-// =============================
+// ==========================
 // CLEAR
-// =============================
+// ==========================
 
-const clearCart = async()=>{
+
+const clearCart=async()=>{
 
 
 try{
 
 
+setCartLoading(true);
+
+
 await clearCartAPI();
 
 
-
 setCart({
-
 items:[]
-
 });
 
 
-
-}catch(error){
+}
+catch(error){
 
 
 console.log(
-"CLEAR CART ERROR:",
+"CLEAR CART ERROR",
 error
 );
 
 
 }
+
+finally{
+
+
+setCartLoading(false);
+
+
+}
+
 
 
 };
@@ -397,27 +460,26 @@ error
 
 
 
-// =============================
-// TOTAL ITEMS
-// =============================
+// ==========================
+// TOTAL COUNT
+// ==========================
+
 
 const totalItems =
 
 cart?.items?.reduce(
 
 (
-sum:number,
+total:number,
 item:any
 )=>
 
-sum +
-Number(item.quantity || 0),
+total +
+Number(item.quantity || 0)
 
-0
+,0)
 
-) || 0;
-
-
+||0;
 
 
 
@@ -437,21 +499,25 @@ totalItems,
 
 loading,
 
+cartLoading,
+
 addItem,
 
 updateItem,
 
 removeItem,
 
-refreshCart,
-
 clearCart,
+
+refreshCart,
 
 }}
 
 >
 
+
 {children}
+
 
 </CartContext.Provider>
 
@@ -467,23 +533,21 @@ clearCart,
 
 
 
-
-
 export default function useCartContext(){
 
 
 const context =
-useContext(CartContext);
+useContext(
+CartContext
+);
 
 
 
 if(!context){
 
-
 throw new Error(
-"useCartContext must be inside CartProvider"
+"useCart must be inside CartProvider"
 );
-
 
 }
 

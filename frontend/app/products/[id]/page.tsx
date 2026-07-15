@@ -1,18 +1,27 @@
 "use client";
 
 
-import { use, useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+
+import {
+  notFound,
+} from "next/navigation";
 
 
 import {
   getProductById,
   getRelatedProducts,
-  getNewArrivalProducts
-
+  getNewArrivalProducts,
 } from "@/services/product.service";
 
 
-import { Product } from "@/types/product";
+import {
+  Product
+} from "@/types/product";
 
 
 import ProductGallery from "@/components/product/ProductGallery";
@@ -27,152 +36,159 @@ import ProductSection from "@/components/product/ProductSection";
 
 export default function ProductDetailsPage({
 
-  params
+params,
 
 }:{
 
-  params: Promise<{
-    id:string
-  }>;
+params:{
+id:string;
+};
 
 }){
 
 
+const [product,setProduct] =
+useState<Product | null>(null);
 
-  const resolvedParams = use(params);
 
+const [related,setRelated] =
+useState<Product[]>([]);
 
 
+const [recent,setRecent] =
+useState<Product[]>([]);
 
-  const [product,setProduct] =
-    useState<Product | null>(null);
 
 
+const [loading,setLoading] =
+useState(true);
 
-  const [related,setRelated] =
-    useState<Product[]>([]);
 
 
 
-  const [recent,setRecent] =
-    useState<Product[]>([]);
 
 
+useEffect(()=>{
 
 
+const load = async()=>{
 
-  useEffect(()=>{
 
+try{
 
-    const loadProduct = async()=>{
 
+setLoading(true);
 
-      try{
 
 
-        // Get single product
+const [
 
-        const productData =
-          await getProductById(
-            resolvedParams.id
-          );
+productRes,
 
+relatedRes,
 
+newRes
 
-        setProduct(
-          productData.product
-        );
+] = await Promise.all([
 
 
+getProductById(
+params.id
+),
 
 
+getRelatedProducts(
+params.id
+),
 
 
-        // Get related products
+getNewArrivalProducts()
 
-        const relatedData =
-          await getRelatedProducts(
-            resolvedParams.id
-          );
 
+]);
 
 
-        setRelated(
-          relatedData
-        );
 
 
 
+const currentProduct =
+productRes.product;
 
 
 
+if(!currentProduct){
 
-        // Get new arrivals
+notFound();
 
-        const newArrivalData =
-          await getNewArrivalProducts();
+return;
 
+}
 
 
-        setRecent(
 
-          newArrivalData.filter(
 
-            (item:Product)=>
 
-              item._id !== resolvedParams.id
+setProduct(
+currentProduct
+);
 
-          )
 
-        );
 
 
+setRelated(
+relatedRes || []
+);
 
 
 
-      }catch(error){
 
 
-        console.log(
-          "Product details error:",
-          error
-        );
+setRecent(
 
+newRes
+.filter(
+(item:Product)=>
+item._id !== params.id
+)
+.slice(0,4)
 
-      }
+);
 
 
-    };
 
 
 
-    loadProduct();
+}catch(error){
 
 
+console.log(
+"Product details error",
+error
+);
 
-  },[resolvedParams.id]);
 
+}finally{
 
 
+setLoading(false);
 
 
+}
 
 
-  if(!product){
+};
 
 
-    return (
 
-      <div className="p-10">
+load();
 
-        Loading...
 
-      </div>
+},[
+params.id
+]);
 
-    );
 
 
-  }
 
 
 
@@ -180,125 +196,231 @@ export default function ProductDetailsPage({
 
 
 
-  return (
+if(loading){
 
-    <main
-      className="
-      bg-gray-50
-      min-h-screen
-      py-10
-      "
-    >
 
+return (
 
+<div
 
-      <div
-        className="
-        max-w-7xl
-        mx-auto
-        px-6
-        "
-      >
+className="
+min-h-screen
+flex
+items-center
+justify-center
+"
 
+>
 
+<div
 
-        {/* Breadcrumb */}
+className="
+animate-pulse
+text-gray-500
+"
 
-        <p
-          className="
-          text-sm
-          text-gray-500
-          mb-6
-          "
-        >
+>
 
-          Home / Products / {product.name}
+Loading product...
 
-        </p>
+</div>
 
 
+</div>
 
+);
 
 
+}
 
 
-        {/* Product Details */}
 
-        <div
-          className="
-          grid
-          lg:grid-cols-2
-          gap-12
-          "
-        >
 
 
 
-          <ProductGallery
 
-            product={product}
 
-          />
 
+if(!product){
 
+return null;
 
+}
 
 
-          <ProductInfo
 
-            product={product}
 
-          />
 
 
 
-        </div>
 
+return (
 
+<main
 
+className="
+min-h-screen
+bg-gray-50
+py-10
+"
 
+>
 
 
+<div
 
+className="
+mx-auto
+max-w-7xl
+px-6
+"
 
-        {/* Related Products */}
+>
 
-        <ProductSection
 
-          title="Related Products"
 
-          products={related}
 
-        />
 
+{/* Breadcrumb */}
 
 
+<div
 
+className="
+mb-8
+text-sm
+text-gray-500
+"
 
+>
 
 
+Home
 
-        {/* New Arrivals */}
+<span className="mx-2">
+/
+</span>
 
-        <ProductSection
 
-          title="New Arrivals"
+Shop
 
-          products={recent.slice(0,4)}
+<span className="mx-2">
+/
+</span>
 
-        />
 
+<span className="text-black">
 
+{product.name}
 
+</span>
 
 
-      </div>
 
+</div>
 
 
-    </main>
 
-  );
+
+
+
+
+
+
+{/* PRODUCT AREA */}
+
+
+
+<section
+
+className="
+grid
+gap-12
+lg:grid-cols-2
+"
+
+>
+
+
+<ProductGallery
+
+product={product}
+
+/>
+
+
+
+
+<ProductInfo
+
+product={product}
+
+/>
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+{/* RELATED */}
+
+
+
+{
+related.length > 0 &&
+
+
+<ProductSection
+
+title="Related Products"
+
+products={related}
+
+/>
+
+
+}
+
+
+
+
+
+
+
+
+
+{
+recent.length > 0 &&
+
+
+<ProductSection
+
+title="New Arrivals"
+
+products={recent}
+
+/>
+
+
+}
+
+
+
+
+</div>
+
+
+</main>
+
+
+);
 
 
 }

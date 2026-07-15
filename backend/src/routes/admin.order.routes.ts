@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   getAllOrders,
   updateAdminOrderStatus,
+  updateAdminPaymentMethod,
   getSalesStats,
 } from "../controllers/admin.order.controller";
 
@@ -39,7 +40,13 @@ router.put(
   authorize("admin"),
   updateAdminOrderStatus
 );
+// Update Payment Method
 
-
+router.put(
+  "/:id/payment",
+  authMiddleware,
+  authorize("admin"),
+  updateAdminPaymentMethod
+);
 
 export default router;

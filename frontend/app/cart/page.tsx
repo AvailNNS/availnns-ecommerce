@@ -1,19 +1,21 @@
 "use client";
 
 
-import { useEffect, useState } from "react";
-
-import Image from "next/image";
+import Link from "next/link";
 
 import {
-  Minus,
-  Plus,
-  Trash2
+  ArrowRight,
+  ShieldCheck,
+  ShoppingBag,
+  Truck,
+  Tag,
+  Sparkles,
 } from "lucide-react";
 
 
 import useCart from "@/hooks/useCart";
 
+import CartItem from "@/components/cart/CartItem";
 
 
 
@@ -22,59 +24,47 @@ export default function CartPage(){
 
 
 const {
-
-cart,
-
-loading,
-
-updateItem,
-
-removeItem
-
+  cart,
+  loading,
+  totalItems,
 }=useCart();
 
 
 
 
 
+// =======================
+// LOADING
+// =======================
 
 if(loading){
 
 return (
 
-<div className="p-10">
-
-Loading cart...
-
-</div>
-
-);
-
-}
-
-
-
-
-
-
-
-if(!cart || cart.items.length===0){
-
-return (
-
-<div className="
+<main
+className="
 min-h-screen
 flex
 items-center
 justify-center
-text-xl
-">
+bg-gray-50
+"
+>
 
-Your cart is empty
-
+<div
+className="
+animate-pulse
+text-gray-500
+"
+>
+Loading your cart...
 </div>
 
+
+</main>
+
 );
+
 
 }
 
@@ -83,32 +73,75 @@ Your cart is empty
 
 
 
+// =======================
+// EMPTY CART
+// =======================
+
+if(
+!cart ||
+!cart.items ||
+cart.items.length===0
+){
 
 
 return (
 
-<main className="
+<main
+className="
+min-h-[80vh]
+flex
+items-center
+justify-center
 bg-gray-50
-min-h-screen
-py-10
-">
-
-
-<div className="
-max-w-6xl
-mx-auto
 px-6
-">
+"
+>
+
+
+<div
+className="
+text-center
+max-w-md
+"
+>
+
+
+<div
+className="
+mx-auto
+flex
+h-32
+w-32
+items-center
+justify-center
+rounded-full
+bg-white
+shadow
+"
+>
+
+<ShoppingBag
+size={55}
+className="
+text-gray-400
+"
+/>
+
+</div>
 
 
 
-<h1 className="
+
+
+<h1
+className="
+mt-8
 text-3xl
-font-bold
-mb-8
-">
+font-black
+"
+>
 
-Shopping Cart
+Your cart is empty
 
 </h1>
 
@@ -116,254 +149,474 @@ Shopping Cart
 
 
 
-
-<div className="
-grid
-lg:grid-cols-3
-gap-8
-">
-
-
-
-
-
-
-{/* ITEMS */}
-
-<div className="
-lg:col-span-2
-space-y-5
-">
-
-
-
-{
-cart.items.map((item:any)=>(
-
-
-<div
-
-key={item.product._id}
-
+<p
 className="
-bg-white
-rounded-xl
-p-5
-flex
-gap-5
-items-center
+mt-3
+text-gray-500
 "
-
-
 >
 
-
-
-<Image
-
-src={item.product.images[0].url}
-
-alt={item.product.name}
-
-width={120}
-
-height={120}
-
-className="
-rounded-lg
-object-cover
-h-28
-w-28
-"
-
-/>
-
-
-
-
-
-
-
-<div className="flex-1">
-
-
-<h2 className="
-font-semibold
-text-lg
-">
-
-{item.product.name}
-
-</h2>
-
-
-
-<p className="
-text-gray-500
-">
-
-${item.price}
+Discover amazing products and add
+them to your cart.
 
 </p>
 
 
 
 
-<div className="
-flex
+
+<Link
+href="/shop"
+className="
+inline-flex
 items-center
-gap-3
-mt-3
-">
+gap-2
+mt-8
+rounded-xl
+bg-black
+px-8
+py-4
+text-white
+font-semibold
+hover:bg-zinc-800
+transition
+"
+>
+
+Start Shopping
+
+<ArrowRight size={18}/>
+
+</Link>
 
 
 
-<button
-
-onClick={()=>
+</div>
 
 
-updateItem(
+</main>
 
-item.product._id,
 
-Math.max(
-1,
-item.quantity-1
-)
+);
 
-)
 
 }
 
-className="
-border
-p-2
-rounded
-"
 
+
+
+
+
+// =======================
+// PRICE
+// =======================
+
+
+const subtotal =
+Number(cart.total || 0);
+
+
+
+const shipping =
+subtotal >=100
+?
+0
+:
+10;
+
+
+
+const tax =
+subtotal * 0.05;
+
+
+
+const total =
+subtotal + shipping + tax;
+
+
+
+const progress =
+Math.min(
+(subtotal/100)*100,
+100
+);
+
+
+
+return (
+
+<main
+className="
+min-h-screen
+bg-gray-50
+py-10
+"
 >
 
-<Minus size={16}/>
 
-</button>
+<div
+className="
+mx-auto
+max-w-7xl
+px-4
+sm:px-6
+lg:px-8
+"
+>
+
+
+{/* HEADER */}
+
+
+<div
+className="
+mb-10
+"
+>
+
+
+<h1
+className="
+text-4xl
+font-black
+tracking-tight
+"
+>
+
+Shopping Cart
+
+</h1>
 
 
 
+<p
+className="
+mt-2
+text-gray-500
+"
+>
+
+{totalItems} products in your cart
+
+</p>
 
 
-<span>
+</div>
 
-{item.quantity}
+{/* MAIN GRID */}
+
+<div
+className="
+grid
+gap-8
+lg:grid-cols-3
+"
+>
+
+
+
+{/* ==========================
+    CART PRODUCTS
+========================== */}
+
+
+<section
+className="
+space-y-5
+lg:col-span-2
+"
+>
+
+
+<div
+className="
+rounded-2xl
+bg-white
+border
+p-5
+shadow-sm
+"
+>
+
+
+<div
+className="
+flex
+items-center
+justify-between
+mb-5
+"
+>
+
+
+<h2
+className="
+text-xl
+font-bold
+"
+>
+
+Your Products
+
+</h2>
+
+
+
+<span
+className="
+rounded-full
+bg-gray-100
+px-4
+py-1
+text-sm
+font-medium
+"
+>
+
+{totalItems} Items
 
 </span>
 
 
+</div>
 
 
 
-<button
-
-onClick={()=>
 
 
-updateItem(
-
-item.product._id,
-
-item.quantity+1
-
-)
-
-}
-
+<div
 className="
-border
-p-2
-rounded
+space-y-4
 "
-
 >
 
-<Plus size={16}/>
 
-</button>
-
-
-
-
-</div>
+{
+cart.items.map(
+(item:any)=>(
 
 
+<CartItem
 
-</div>
-
-
-
-
-
-
-
-<button
-
-onClick={()=>
-
-
-removeItem(
-
+key={
 item.product._id
+}
+
+item={item}
+
+/>
+
+
+)
 
 )
 
 }
 
-className="
-text-red-500
-"
 
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+{/* BENEFITS */}
+
+
+<div
+className="
+grid
+gap-4
+sm:grid-cols-3
+"
 >
 
-<Trash2/>
-
-</button>
 
 
-
-
-</div>
-
-
-))
-
-}
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-{/* SUMMARY */}
-
-<div className="
+<div
+className="
+rounded-2xl
+border
 bg-white
-rounded-xl
-p-6
-h-fit
-">
+p-5
+"
+>
+
+<Truck
+size={24}
+/>
 
 
-<h2 className="
-text-xl
+<h3
+className="
+mt-3
 font-bold
-mb-5
-">
+"
+>
+
+Fast Delivery
+
+</h3>
+
+
+<p
+className="
+text-sm
+text-gray-500
+mt-1
+"
+>
+
+2-5 business days
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+<div
+className="
+rounded-2xl
+border
+bg-white
+p-5
+"
+>
+
+<ShieldCheck
+size={24}
+/>
+
+
+<h3
+className="
+mt-3
+font-bold
+"
+>
+
+Secure Payment
+
+</h3>
+
+
+<p
+className="
+text-sm
+text-gray-500
+mt-1
+"
+>
+
+100% secure checkout
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div
+className="
+rounded-2xl
+border
+bg-white
+p-5
+"
+>
+
+<Sparkles
+size={24}
+/>
+
+
+<h3
+className="
+mt-3
+font-bold
+"
+>
+
+Premium Quality
+
+</h3>
+
+
+<p
+className="
+text-sm
+text-gray-500
+mt-1
+"
+>
+
+Verified products
+
+</p>
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+</section>
+
+{/* ==========================
+    ORDER SUMMARY
+========================== */}
+
+
+<aside
+className="
+h-fit
+lg:sticky
+lg:top-24
+"
+>
+
+
+<div
+className="
+rounded-2xl
+border
+bg-white
+p-6
+shadow-sm
+"
+>
+
+
+
+<h2
+className="
+text-xl
+font-black
+mb-6
+"
+>
 
 Order Summary
 
@@ -372,23 +625,40 @@ Order Summary
 
 
 
-<div className="
+
+
+{/* FREE SHIPPING */}
+
+
+<div
+className="
+rounded-xl
+bg-gray-50
+p-4
+mb-6
+"
+>
+
+
+<div
+className="
 flex
 justify-between
-mb-3
-">
-
+text-sm
+font-medium
+"
+>
 
 <span>
 
-Subtotal
+Free Shipping
 
 </span>
 
 
 <span>
 
-${cart.total}
+${subtotal.toFixed(2)}/100
 
 </span>
 
@@ -399,55 +669,167 @@ ${cart.total}
 
 
 
-<div className="
-border-t
-pt-4
-flex
-justify-between
-font-bold
-text-lg
-">
+<div
+className="
+mt-3
+h-2
+rounded-full
+bg-gray-200
+overflow-hidden
+"
+>
 
 
-<span>
+<div
 
-Total
+className="
+h-full
+bg-black
+transition-all
+"
 
-</span>
+style={{
+
+width:`${progress}%`
+
+}}
 
 
-<span>
-
-${cart.total}
-
-</span>
+/>
 
 
 </div>
 
 
 
+
+
+{
+
+subtotal < 100 ?
+
+<p
+className="
+mt-2
+text-xs
+text-gray-500
+"
+>
+
+Add ${(100-subtotal).toFixed(2)}
+more to unlock free shipping
+
+</p>
+
+
+:
+
+<p
+className="
+mt-2
+text-xs
+font-semibold
+text-green-600
+"
+>
+
+🎉 Free shipping unlocked
+
+</p>
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+
+{/* COUPON */}
+
+
+<div
+className="
+mb-6
+"
+>
+
+
+<label
+className="
+flex
+items-center
+gap-2
+text-sm
+font-semibold
+mb-2
+"
+>
+
+<Tag size={16}/>
+
+Coupon Code
+
+</label>
+
+
+
+
+<div
+className="
+flex
+gap-2
+"
+>
+
+
+<input
+
+placeholder="
+Enter coupon
+"
+
+className="
+flex-1
+rounded-xl
+border
+px-4
+py-3
+outline-none
+focus:ring-2
+focus:ring-black/10
+"
+
+/>
 
 
 
 <button
 
 className="
-mt-6
-w-full
-bg-black
-text-white
-py-3
 rounded-xl
+bg-black
+px-5
+text-white
+font-semibold
+hover:bg-zinc-800
 "
-
 >
 
-Checkout
+Apply
 
 </button>
 
 
+</div>
+
+
 
 </div>
 
@@ -457,8 +839,266 @@ Checkout
 
 
 
+
+
+
+{/* PRICE DETAILS */}
+
+
+
+<div
+className="
+space-y-4
+text-sm
+"
+>
+
+
+<div
+className="
+flex
+justify-between
+"
+>
+
+<span>
+Subtotal
+</span>
+
+
+<span
+className="
+font-semibold
+"
+>
+
+${subtotal.toFixed(2)}
+
+</span>
+
+
 </div>
 
+
+
+
+
+<div
+className="
+flex
+justify-between
+"
+>
+
+<span>
+Shipping
+</span>
+
+
+<span
+className="
+font-semibold
+"
+>
+
+{
+shipping===0
+?
+"FREE"
+:
+`$${shipping}`
+}
+
+
+</span>
+
+
+</div>
+
+
+
+
+
+
+<div
+className="
+flex
+justify-between
+"
+>
+
+<span>
+Tax (5%)
+</span>
+
+
+<span
+className="
+font-semibold
+"
+>
+
+${tax.toFixed(2)}
+
+</span>
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+{/* TOTAL */}
+
+
+<div
+className="
+mt-6
+border-t
+pt-5
+flex
+justify-between
+items-center
+"
+>
+
+
+<span
+className="
+text-lg
+font-bold
+"
+>
+
+Total
+
+</span>
+
+
+
+<span
+className="
+text-3xl
+font-black
+"
+>
+
+${total.toFixed(2)}
+
+</span>
+
+
+
+</div>
+
+
+
+
+
+
+
+{/* CHECKOUT */}
+
+
+
+<Link
+
+href="/checkout"
+
+className="
+mt-7
+flex
+items-center
+justify-center
+gap-2
+rounded-xl
+bg-black
+py-4
+text-white
+font-bold
+hover:bg-zinc-800
+transition
+"
+>
+
+Proceed To Checkout
+
+<ArrowRight size={18}/>
+
+</Link>
+
+
+
+
+
+
+
+
+<Link
+
+href="/shop"
+
+className="
+mt-3
+flex
+items-center
+justify-center
+rounded-xl
+border
+py-3
+font-medium
+hover:bg-gray-50
+"
+>
+
+Continue Shopping
+
+</Link>
+
+
+
+
+
+
+
+<div
+className="
+mt-5
+flex
+justify-center
+items-center
+gap-2
+text-sm
+text-gray-500
+"
+>
+
+<ShieldCheck size={16}/>
+
+Secure SSL Checkout
+
+</div>
+
+
+
+
+
+</div>
+
+
+</aside>
+
+
+
+</div>
 
 
 </div>

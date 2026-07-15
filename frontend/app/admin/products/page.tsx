@@ -1,32 +1,46 @@
 "use client";
 
+
 import {
-  useEffect,
-  useState,
+useEffect,
+useState
 } from "react";
+
 
 import Link from "next/link";
 
+import Image from "next/image";
+
+
 import {
-  Search,
-  Edit,
-  Trash2,
-  Plus,
-  Package,
-  Star,
-  TrendingUp,
+Search,
+Edit,
+Trash2,
+Plus,
+Package,
+Star,
+TrendingUp,
+AlertTriangle,
+BadgeCheck
 } from "lucide-react";
 
 
 import {
-  getAdminProducts,
-  removeProduct,
+toast
+} from "sonner";
+
+
+import {
+getAdminProducts,
+removeProduct
 } from "@/services/product.service";
 
 
 import {
-  Product,
+Product
 } from "@/types/product";
+
+
 
 
 
@@ -75,8 +89,13 @@ setProducts(data);
 
 console.log(error);
 
+toast.error(
+"Failed to load products"
+);
 
-}finally{
+
+}
+finally{
 
 setLoading(false);
 
@@ -89,9 +108,13 @@ setLoading(false);
 
 
 
+
+
 useEffect(()=>{
 
+
 loadProducts();
+
 
 },[]);
 
@@ -103,20 +126,19 @@ loadProducts();
 
 
 
-const deleteProduct =
-async(id:string)=>{
+const deleteProduct = async(
+id:string
+)=>{
 
 
-const confirmDelete =
+const ok =
 confirm(
-"Are you sure you want to delete?"
+"Delete this product?"
 );
 
 
-
-if(!confirmDelete)
+if(!ok)
 return;
-
 
 
 
@@ -125,6 +147,7 @@ try{
 
 const token =
 localStorage.getItem("token");
+
 
 
 if(!token)
@@ -149,9 +172,19 @@ item=>item._id!==id
 
 
 
+toast.success(
+"Product deleted"
+);
+
+
+
 }catch(error){
 
-console.log(error);
+
+toast.error(
+"Delete failed"
+);
+
 
 }
 
@@ -185,15 +218,41 @@ search.toLowerCase()
 
 if(loading){
 
-return(
 
-<div className="p-10 text-center">
+return (
 
-Loading products...
+<div className="
+grid
+md:grid-cols-3
+gap-6
+p-6
+">
+
+{
+
+[1,2,3,4,5,6].map(i=>(
+
+<div
+
+key={i}
+
+className="
+h-80
+rounded-3xl
+bg-gray-200
+animate-pulse
+"
+
+/>
+
+))
+
+}
 
 </div>
 
 );
+
 
 }
 
@@ -202,9 +261,17 @@ Loading products...
 
 
 
-return(
 
-<div className="space-y-8">
+
+
+
+return (
+
+<div className="
+space-y-8
+">
+
+
 
 
 
@@ -215,16 +282,20 @@ return(
 
 <div className="
 flex
-items-center
-justify-between
+flex-col
+gap-4
+md:flex-row
+md:items-center
+md:justify-between
 ">
 
 
 <div>
 
+
 <h1 className="
 text-3xl
-font-bold
+font-black
 ">
 
 Products
@@ -246,6 +317,7 @@ Manage your store inventory
 
 
 
+
 <Link
 
 href="/admin/products/add"
@@ -253,17 +325,18 @@ href="/admin/products/add"
 className="
 flex
 items-center
+justify-center
 gap-2
-rounded-xl
+rounded-2xl
 bg-black
-px-5
+px-6
 py-3
 text-white
+font-semibold
 hover:opacity-90
 "
 
 >
-
 
 <Plus size={18}/>
 
@@ -283,136 +356,80 @@ Add Product
 
 
 
+
 {/* STATS */}
 
 
 <div className="
 grid
 gap-5
-md:grid-cols-3
+sm:grid-cols-2
+xl:grid-cols-4
 ">
 
 
 
-<div className="
-rounded-2xl
-bg-white
-p-5
-shadow
-">
+<StatCard
 
-<div className="flex gap-3 items-center">
+title="Total Products"
 
-<Package/>
+value={products.length}
 
-<h3>
-Total Products
-</h3>
+icon={Package}
 
-</div>
-
-
-<p className="
-mt-3
-text-3xl
-font-bold
-">
-
-{products.length}
-
-</p>
-
-
-</div>
+/>
 
 
 
+<StatCard
 
+title="Featured"
 
-<div className="
-rounded-2xl
-bg-white
-p-5
-shadow
-">
-
-
-<div className="flex gap-3 items-center">
-
-<TrendingUp/>
-
-<h3>
-Best Sellers
-</h3>
-
-
-</div>
-
-
-<p className="
-mt-3
-text-3xl
-font-bold
-">
-
-{
-products.filter(
-p=>p.isBestSeller
-).length
-}
-
-</p>
-
-
-
-</div>
-
-
-
-
-
-
-
-<div className="
-rounded-2xl
-bg-white
-p-5
-shadow
-">
-
-
-<div className="flex gap-3 items-center">
-
-<Star/>
-
-<h3>
-Featured
-</h3>
-
-</div>
-
-
-<p className="
-mt-3
-text-3xl
-font-bold
-">
-
-{
+value={
 products.filter(
 p=>p.isFeatured
 ).length
 }
 
-</p>
+icon={Star}
+
+/>
+
+
+
+<StatCard
+
+title="Best Sellers"
+
+value={
+products.filter(
+p=>p.isBestSeller
+).length
+}
+
+icon={TrendingUp}
+
+/>
+
+
+
+<StatCard
+
+title="Low Stock"
+
+value={
+products.filter(
+p=>p.stock < 10
+).length
+}
+
+icon={AlertTriangle}
+
+/>
+
 
 
 </div>
-
-
-
-</div>
-
 
 
 
@@ -427,7 +444,7 @@ p=>p.isFeatured
 
 <div className="
 relative
-max-w-lg
+max-w-xl
 ">
 
 
@@ -435,20 +452,15 @@ max-w-lg
 
 className="
 absolute
-left-3
-top-3
+left-4
+top-3.5
 text-gray-400
 "
 
 />
 
 
-
 <input
-
-placeholder="
-Search products...
-"
 
 value={search}
 
@@ -456,13 +468,21 @@ onChange={
 e=>setSearch(e.target.value)
 }
 
+placeholder="
+Search product...
+"
+
 className="
 w-full
-rounded-xl
+rounded-2xl
 border
+bg-white
 py-3
-pl-10
-pr-4
+pl-12
+pr-5
+outline-none
+focus:ring-2
+focus:ring-black
 "
 
 />
@@ -478,13 +498,13 @@ pr-4
 
 
 
-{/* PRODUCTS */}
+{/* EMPTY */}
+
 
 
 {
 
-filteredProducts.length===0 ?
-
+filteredProducts.length===0 &&
 
 <div className="
 rounded-3xl
@@ -496,8 +516,15 @@ shadow
 
 
 <Package
+
 size={50}
-className="mx-auto mb-4"
+
+className="
+mx-auto
+mb-4
+text-gray-400
+"
+
 />
 
 
@@ -506,17 +533,26 @@ text-xl
 font-bold
 ">
 
-No products found
+No Products Found
 
 </h2>
-
 
 
 </div>
 
 
+}
 
-:
+
+
+
+
+
+
+
+
+
+{/* PRODUCTS GRID */}
 
 
 
@@ -534,16 +570,17 @@ xl:grid-cols-3
 filteredProducts.map(product=>(
 
 
-
 <div
 
 key={product._id}
 
 className="
+group
 rounded-3xl
+border
 bg-white
 p-5
-shadow
+shadow-sm
 transition
 hover:-translate-y-1
 hover:shadow-xl
@@ -552,34 +589,49 @@ hover:shadow-xl
 >
 
 
+
+
+
+
+
+{/* IMAGE */}
+
+
 <div className="
 relative
-h-56
+h-60
 overflow-hidden
 rounded-2xl
 bg-gray-100
 ">
 
 
-<img
+<Image
 
 src={
 product.images?.[0]?.url ||
 "/placeholder.png"
 }
 
+alt={product.name}
+
+fill
+
 className="
-h-full
-w-full
 object-cover
+transition
+group-hover:scale-105
 "
 
 />
 
 
 
-{
 
+
+
+
+{
 product.discountPrice>0 &&
 
 <span className="
@@ -594,7 +646,7 @@ text-xs
 text-white
 ">
 
-Sale
+SALE
 
 </span>
 
@@ -611,17 +663,17 @@ Sale
 
 
 
+
 <h2 className="
-mt-4
+mt-5
 truncate
 text-xl
-font-bold
+font-black
 ">
 
 {product.name}
 
 </h2>
-
 
 
 
@@ -651,13 +703,30 @@ product.category.name
 <div className="
 mt-3
 flex
+items-center
 gap-3
 ">
 
 
+{
+
+product.discountPrice>0 ?
+
+<>
+
 <span className="
 text-xl
-font-bold
+font-black
+">
+
+${product.discountPrice}
+
+</span>
+
+
+<span className="
+line-through
+text-gray-400
 ">
 
 ${product.price}
@@ -665,20 +734,20 @@ ${product.price}
 </span>
 
 
-{
-product.discountPrice>0 &&
+</>
+
+:
 
 <span className="
-text-gray-400
-line-through
+text-xl
+font-black
 ">
 
-${product.discountPrice}
+${product.price}
 
 </span>
 
 }
-
 
 
 </div>
@@ -694,47 +763,34 @@ ${product.discountPrice}
 <div className="
 mt-4
 flex
-gap-2
 flex-wrap
+gap-2
 ">
 
 
 {
 product.isFeatured &&
 
-<span className="
-rounded-full
-bg-blue-100
-px-3
-py-1
-text-xs
-">
+<Badge text="Featured"/>
 
-Featured
+}
 
-</span>
+
+{
+product.isBestSeller &&
+
+<Badge text="Best Seller"/>
 
 }
 
 
 
 {
-product.isBestSeller &&
+product.isNewArrival&&
 
-<span className="
-rounded-full
-bg-yellow-100
-px-3
-py-1
-text-xs
-">
-
-Best Seller
-
-</span>
+<Badge text="New"/>
 
 }
-
 
 
 </div>
@@ -745,17 +801,33 @@ Best Seller
 
 
 
-<p className="
-mt-4
-font-medium
+
+
+<div className="
+mt-5
+flex
+items-center
+justify-between
 ">
+
+
+<p>
 
 Stock:
 
-<span className="
-text-green-600
-ml-2
-">
+<span className={
+
+product.stock < 10
+
+?
+
+"text-red-500 font-bold ml-2"
+
+:
+
+"text-green-600 font-bold ml-2"
+
+}>
 
 {product.stock}
 
@@ -763,6 +835,27 @@ ml-2
 
 
 </p>
+
+
+
+{
+product.stock <10 &&
+
+<AlertTriangle
+
+size={18}
+
+className="text-red-500"
+
+/>
+
+}
+
+
+
+</div>
+
+
 
 
 
@@ -780,17 +873,20 @@ gap-3
 
 <Link
 
-href={`/admin/products/edit/${product._id}`}
+href={
+`/admin/products/edit/${product._id}`
+}
 
 className="
 flex-1
 flex
-justify-center
 items-center
+justify-center
 gap-2
 rounded-xl
 bg-gray-100
 py-3
+font-semibold
 "
 
 >
@@ -809,9 +905,7 @@ Edit
 
 <button
 
-onClick={()=>
-deleteProduct(product._id)
-}
+onClick={()=>deleteProduct(product._id)}
 
 className="
 rounded-xl
@@ -824,6 +918,7 @@ text-white
 
 <Trash2 size={18}/>
 
+
 </button>
 
 
@@ -833,8 +928,11 @@ text-white
 
 
 
-</div>
 
+
+
+
+</div>
 
 
 ))
@@ -846,14 +944,125 @@ text-white
 </div>
 
 
-}
+
+
+
+
 
 
 
 </div>
 
+);
+
+}
+
+
+
+
+
+
+
+
+
+function StatCard({
+title,
+value,
+icon:Icon
+}:any){
+
+
+return (
+
+<div className="
+rounded-3xl
+bg-white
+p-6
+shadow-sm
+border
+">
+
+
+<div className="
+flex
+justify-between
+">
+
+
+<div className="
+rounded-xl
+bg-black
+p-3
+text-white
+">
+
+<Icon size={22}/>
+
+</div>
+
+
+</div>
+
+
+
+<p className="
+mt-5
+text-sm
+text-gray-500
+">
+
+{title}
+
+</p>
+
+
+
+<h3 className="
+text-3xl
+font-black
+">
+
+{value}
+
+</h3>
+
+
+
+</div>
 
 );
 
+}
+
+
+
+
+
+
+
+
+function Badge({
+text
+}:{
+text:string
+}){
+
+
+return (
+
+<span className="
+rounded-full
+bg-black
+px-3
+py-1
+text-xs
+text-white
+">
+
+{text}
+
+</span>
+
+);
 
 }

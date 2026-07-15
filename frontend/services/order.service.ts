@@ -1,23 +1,28 @@
 import api from "@/services/api";
 
 
+
 // =========================
 // CREATE ORDER
 // =========================
 
-export const createOrder = async (
-  data:any
+export const createOrder = async(
+ data:any
 )=>{
 
-  const res = await api.post(
-    "/orders",
-    data
-  );
+const res =
+await api.post(
+"/orders",
+data
+);
 
 
-  return res.data;
+return res.data;
 
 };
+
+
+
 
 // =========================
 // GET MY ORDERS
@@ -25,30 +30,56 @@ export const createOrder = async (
 
 export const getMyOrders = async()=>{
 
+const res =
+await api.get(
+"/orders/my-orders"
+);
 
-  const res = await api.get(
-    "/orders"
-  );
 
-
-  return res.data.orders || [];
-
+return res.data.orders || [];
 
 };
 
+
+
+
 // =========================
-// GET MY ORDERS by id
+// GET ORDER BY ID
 // =========================
 
 export const getOrderById = async(
-  id:string
+ id:string,
+ token:string
 )=>{
-  const res = await api.get(
-    `/orders/${id}`
-  );
-  return res.data.order || [];
+
+
+const res =
+await api.get(
+
+`/orders/${id}`,
+
+{
+
+headers:{
+
+Authorization:
+`Bearer ${token}`
+
+}
+
+}
+
+);
+
+
+return res.data.order || res.data;
+
 
 };
+
+
+
+
 
 
 // =========================
@@ -56,23 +87,37 @@ export const getOrderById = async(
 // =========================
 
 export const getAdminOrders = async(
-  token:string
+ token:string
 )=>{
 
 
-  const res = await api.get(
-    "/orders/admin",
-    {
-      headers:{
-        Authorization:`Bearer ${token}`
-      }
-    }
-  );
+const res =
+await api.get(
+
+"/admin/orders",
+
+{
+
+headers:{
+
+Authorization:
+`Bearer ${token}`
+
+}
+
+}
+
+);
 
 
-  return res.data.orders || [];
+
+return res.data.orders || [];
+
 
 };
+
+
+
 
 
 
@@ -82,29 +127,105 @@ export const getAdminOrders = async(
 // =========================
 
 export const updateOrderStatus = async(
-  id:string,
-  status:string,
-  token:string
+
+id:string,
+
+status:string,
+
+token:string
+
 )=>{
 
 
-  const res = await api.put(
-
-    `/orders/admin/${id}`,
-
-    {
-      status
-    },
-
-    {
-      headers:{
-        Authorization:`Bearer ${token}`
-      }
-    }
-
-  );
+const res =
+await api.put(
 
 
-  return res.data;
+`/admin/orders/${id}/status`,
+
+
+{
+
+status
+
+},
+
+
+{
+
+headers:{
+
+Authorization:
+`Bearer ${token}`
+
+}
+
+}
+
+
+);
+
+
+
+return res.data;
+
+
+};
+
+
+
+
+
+
+
+// =========================
+// UPDATE PAYMENT
+// =========================
+
+export const updatePayment = async(
+
+id:string,
+
+paymentMethod:string,
+
+paymentStatus:string,
+
+token:string
+
+)=>{
+
+
+const res =
+await api.put(
+
+`/admin/orders/${id}/payment`,
+
+
+{
+
+paymentMethod,
+
+paymentStatus
+
+},
+
+
+{
+
+headers:{
+
+Authorization:
+`Bearer ${token}`
+
+}
+
+}
+
+);
+
+
+
+return res.data;
+
 
 };

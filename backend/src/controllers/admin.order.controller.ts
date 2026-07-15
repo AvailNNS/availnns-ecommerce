@@ -222,3 +222,86 @@ export const getSalesStats = async(
 
 
 };
+
+// ===============================
+// UPDATE PAYMENT METHOD
+// ===============================
+
+export const updateAdminPaymentMethod = async(
+ req:Request,
+ res:Response
+):Promise<void>=>{
+
+
+try{
+
+
+const {
+ paymentMethod
+}=req.body;
+
+
+
+const order = await Order.findByIdAndUpdate(
+
+ req.params.id,
+
+ {
+  paymentMethod
+ },
+
+ {
+  new:true
+ }
+
+);
+
+
+
+if(!order){
+
+res.status(404).json({
+
+success:false,
+
+message:"Order not found"
+
+});
+
+return;
+
+}
+
+
+
+
+res.status(200).json({
+
+success:true,
+
+message:"Payment method updated",
+
+order
+
+});
+
+
+
+}catch(error:any){
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Payment update failed",
+
+error:error.message
+
+});
+
+
+}
+
+
+};

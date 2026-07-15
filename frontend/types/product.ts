@@ -42,7 +42,7 @@ export interface Product {
 
   images:ProductImage[];
 
-
+  isNewArrival:boolean;
   isFeatured:boolean;
 
   isBestSeller:boolean;

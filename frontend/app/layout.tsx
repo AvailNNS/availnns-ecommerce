@@ -2,68 +2,65 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 
 import AppProvider from "@/components/providers/AppProvider";
+
+import MainLayout from "@/components/layout/MainLayout";
+
 
 
 export const metadata: Metadata = {
 
-  title: "NOPTRIX",
+  title:"NOPTRIX",
 
-  description: "Professional Ecommerce",
+  description:"Professional Ecommerce",
 
-  other: {
-    "format-detection": "telephone=no",
+  other:{
+    "format-detection":"telephone=no",
   },
 
 };
 
 
+
 export default function RootLayout({
 
-  children,
+children,
 
-}: Readonly<{
+}:Readonly<{
 
-  children: React.ReactNode;
+children:React.ReactNode;
 
 }>) {
 
 
-  return (
+return (
 
-    <html lang="en">
-
-
-      <body>
+<html lang="en">
 
 
-        <AppProvider>
+<body>
 
 
-          <Header />
+<AppProvider>
 
 
-          <main>
+<MainLayout>
 
-            {children}
+{children}
 
-          </main>
-
-
-          <Footer />
+</MainLayout>
 
 
-        </AppProvider>
+</AppProvider>
 
 
-      </body>
+</body>
 
 
-    </html>
+</html>
 
-  );
+);
+
 
 }

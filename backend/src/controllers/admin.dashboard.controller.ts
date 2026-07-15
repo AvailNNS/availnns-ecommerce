@@ -141,3 +141,251 @@ export const getRecentOrders = async(
 
 
 };
+
+// ===============================
+// ORDER STATUS STATS
+// ===============================
+
+export const getOrderStatusStats = async(
+ req:Request,
+ res:Response
+):Promise<void>=>{
+
+
+try{
+
+
+const status = await Order.aggregate([
+
+{
+ $group:{
+  _id:"$status",
+  count:{
+   $sum:1
+  }
+ }
+}
+
+]);
+
+
+
+res.status(200).json({
+
+success:true,
+
+status
+
+});
+
+
+
+}catch(error:any){
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Failed",
+
+error:error.message
+
+});
+
+
+}
+
+
+};
+
+// ===============================
+// TOP SELLING PRODUCTS
+// ===============================
+
+export const getTopProducts = async(
+req:Request,
+res:Response
+):Promise<void>=>{
+
+
+try{
+
+
+const products =
+await Order.aggregate([
+
+
+{
+ $unwind:"$items"
+},
+
+
+{
+ $group:{
+
+ _id:"$items.product",
+
+ totalSold:{
+  $sum:"$items.quantity"
+ }
+
+ }
+
+},
+
+
+{
+ $sort:{
+  totalSold:-1
+ }
+},
+
+
+{
+ $limit:5
+},
+
+
+{
+ $lookup:{
+
+ from:"products",
+
+ localField:"_id",
+
+ foreignField:"_id",
+
+ as:"product"
+
+ }
+
+},
+
+
+{
+ $unwind:"$product"
+}
+
+
+]);
+
+
+
+res.status(200).json({
+
+success:true,
+
+products
+
+});
+
+
+
+}catch(error:any){
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Failed",
+
+error:error.message
+
+});
+
+
+}
+
+
+};
+
+// ===============================
+// MONTHLY SALES
+// ===============================
+
+export const getMonthlySales = async(
+req:Request,
+res:Response
+):Promise<void>=>{
+
+
+try{
+
+
+const sales =
+await Order.aggregate([
+
+
+{
+$match:{
+paymentStatus:"paid"
+}
+},
+
+
+
+{
+$group:{
+
+_id:{
+month:{
+$month:"$createdAt"
+},
+
+year:{
+$year:"$createdAt"
+}
+
+},
+
+
+revenue:{
+$sum:"$totalPrice"
+}
+
+}
+
+},
+
+
+{
+$sort:{
+"_id.month":1
+}
+}
+
+
+]);
+
+
+
+res.status(200).json({
+
+success:true,
+
+sales
+
+});
+
+
+
+}catch(error:any){
+
+
+res.status(500).json({
+
+success:false,
+
+message:"Failed",
+
+error:error.message
+
+});
+
+
+}
+
+
+};

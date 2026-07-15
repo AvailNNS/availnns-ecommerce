@@ -1,20 +1,32 @@
 "use client";
 
+
 import {
   useEffect,
   useState,
 } from "react";
+
 
 import {
   useRouter,
 } from "next/navigation";
 
 
+import Image from "next/image";
+
+
 import {
   Upload,
   X,
   Save,
+  Sparkles,
+  Package,
 } from "lucide-react";
+
+
+import {
+  toast,
+} from "sonner";
 
 
 import {
@@ -34,16 +46,19 @@ import {
 
 
 
+
 export default function AddProductPage(){
 
 
-const router = useRouter();
+const router =
+useRouter();
 
 
 
 
 const [loading,setLoading] =
 useState(false);
+
 
 
 const [error,setError] =
@@ -56,6 +71,11 @@ useState<Category[]>([]);
 
 
 
+const [categoryLoading,setCategoryLoading] =
+useState(true);
+
+
+
 const [images,setImages] =
 useState<File[]>([]);
 
@@ -63,7 +83,6 @@ useState<File[]>([]);
 
 const [previews,setPreviews] =
 useState<string[]>([]);
-
 
 
 
@@ -106,13 +125,18 @@ isNewArrival:true,
 
 
 
-// Discount Preview
+
+
+// ======================
+// DISCOUNT
+// ======================
+
 
 const discountPercentage =
 
-Number(form.price) > 0 &&
-Number(form.discountPrice) > 0 &&
-Number(form.discountPrice) < Number(form.price)
+Number(form.price)>0 &&
+Number(form.discountPrice)>0 &&
+Number(form.discountPrice)<Number(form.price)
 
 ?
 
@@ -129,9 +153,7 @@ Number(form.discountPrice)
 
 Number(form.price)
 
-*
-
-100
+*100
 
 )
 
@@ -147,7 +169,10 @@ Number(form.price)
 
 
 
-// Load Categories
+
+// ======================
+// LOAD CATEGORY
+// ======================
 
 
 useEffect(()=>{
@@ -173,7 +198,9 @@ await getAdminCategories(token);
 
 
 
-setCategories(data);
+setCategories(
+data
+);
 
 
 
@@ -181,6 +208,12 @@ setCategories(data);
 
 
 console.log(err);
+
+
+}finally{
+
+
+setCategoryLoading(false);
 
 
 }
@@ -193,7 +226,6 @@ console.log(err);
 loadCategories();
 
 
-
 },[]);
 
 
@@ -204,7 +236,11 @@ loadCategories();
 
 
 
-// Image Preview
+
+
+// ======================
+// IMAGE PREVIEW
+// ======================
 
 
 useEffect(()=>{
@@ -220,7 +256,6 @@ URL.createObjectURL(file)
 
 
 setPreviews(urls);
-
 
 
 
@@ -248,7 +283,12 @@ URL.revokeObjectURL(url)
 
 
 
-// Input Change
+
+
+
+// ======================
+// CHANGE
+// ======================
 
 
 const handleChange =
@@ -276,7 +316,6 @@ type
 
 
 
-
 setForm(prev=>({
 
 ...prev,
@@ -295,7 +334,6 @@ type==="checkbox"
 value
 
 
-
 }));
 
 
@@ -312,12 +350,14 @@ value
 
 
 
-// Image Upload
+
+// ======================
+// IMAGE UPLOAD
+// ======================
 
 
-const handleImages =
+const handleImages = (
 
-(
 e:
 React.ChangeEvent<HTMLInputElement>
 
@@ -331,17 +371,70 @@ return;
 
 
 const files =
-Array.from(e.target.files);
+Array.from(
+e.target.files
+);
 
 
 
-setImages(prev=>[
+
+
+const validFiles =
+files.filter(file=>{
+
+
+if(
+!file.type.startsWith("image/")
+){
+
+toast.error(
+"Only image files allowed"
+);
+
+return false;
+
+}
+
+
+
+
+
+if(
+file.size > 5*1024*1024
+){
+
+toast.error(
+`${file.name} exceeds 5MB`
+);
+
+
+return false;
+
+}
+
+
+
+return true;
+
+
+});
+
+
+
+
+
+
+setImages(prev=>
+
+[
 
 ...prev,
 
-...files
+...validFiles
 
-]);
+].slice(0,6)
+
+);
 
 
 
@@ -355,11 +448,12 @@ setImages(prev=>[
 
 
 
-// Remove Image
+// ======================
+// REMOVE IMAGE
+// ======================
 
 
 const removeImage =
-
 (index:number)=>{
 
 
@@ -367,7 +461,6 @@ setImages(prev=>
 
 prev.filter(
 (_,i)=>i!==index
-
 )
 
 );
@@ -375,26 +468,17 @@ prev.filter(
 
 };
 
-
-
-
-
-
-
-
-
-// Submit
+// ======================
+// SUBMIT
+// ======================
 
 
 const handleSubmit = async(
-
 e:React.FormEvent
-
 )=>{
 
 
 e.preventDefault();
-
 
 
 try{
@@ -425,23 +509,21 @@ return;
 
 
 
-
 if(
+form.discountPrice &&
 Number(form.discountPrice)
 >=
 Number(form.price)
-
-&&
-Number(form.discountPrice)>0
-
 ){
 
+
 setError(
-"Discount price must be lower than regular price"
+"Discount price must be lower than price"
 );
 
 
 return;
+
 
 }
 
@@ -478,11 +560,8 @@ new FormData();
 
 
 
-
-
 Object.entries(form)
 .forEach(([key,value])=>{
-
 
 
 if(key==="tags"){
@@ -491,32 +570,18 @@ if(key==="tags"){
 
 const tags =
 
-typeof value==="string"
-
-?
-
 value
+.toString()
 .split(",")
 .map(tag=>tag.trim())
-.filter(Boolean)
-
-:
-
-[];
-
-
+.filter(Boolean);
 
 
 
 data.append(
-
 "tags",
-
 JSON.stringify(tags)
-
 );
-
-
 
 
 
@@ -525,17 +590,12 @@ JSON.stringify(tags)
 
 
 data.append(
-
 key,
-
 String(value)
-
 );
 
 
-
 }
-
 
 
 });
@@ -551,11 +611,8 @@ images.forEach(file=>{
 
 
 data.append(
-
 "images",
-
 file
-
 );
 
 
@@ -568,15 +625,17 @@ file
 
 
 await createProduct(
-
 data,
-
 token
-
 );
 
 
 
+
+
+toast.success(
+"Product created successfully"
+);
 
 
 
@@ -591,10 +650,7 @@ router.push(
 }catch(err:any){
 
 
-
-console.log(
-err
-);
+console.log(err);
 
 
 
@@ -617,29 +673,60 @@ setLoading(false);
 }
 
 
+
 };
+
+
+
+
+
+
+
+
 
 return (
 
-<div className="max-w-6xl space-y-8">
+<div
+
+className="
+mx-auto
+max-w-6xl
+space-y-8
+"
+
+>
+
+
+
+
+
 
 
 <div>
 
-<h1 className="
+
+<h1
+
+className="
 text-3xl
-font-bold
-">
+font-black
+"
+
+>
 
 Add New Product
 
 </h1>
 
 
-<p className="
+<p
+
+className="
 mt-2
 text-gray-500
-">
+"
+
+>
 
 Create professional product listing
 
@@ -647,6 +734,8 @@ Create professional product listing
 
 
 </div>
+
+
 
 
 
@@ -672,6 +761,8 @@ shadow-xl
 
 
 
+
+
 {
 error &&
 
@@ -681,6 +772,7 @@ className="
 rounded-xl
 bg-red-100
 p-4
+font-medium
 text-red-600
 "
 
@@ -699,29 +791,60 @@ text-red-600
 
 
 
+
+
 {/* PRODUCT INFO */}
+
 
 
 <section>
 
 
-<h2 className="
+<div
+
+className="
 mb-5
+flex
+items-center
+gap-2
+"
+
+>
+
+<Package size={22}/>
+
+
+<h2
+
+className="
 text-xl
 font-bold
-">
+"
+
+>
 
 Product Information
 
 </h2>
 
 
+</div>
 
-<div className="
+
+
+
+
+
+<div
+
+className="
 grid
 gap-5
 md:grid-cols-2
-">
+"
+
+>
+
 
 
 <input
@@ -749,6 +872,8 @@ required
 
 
 
+
+
 <input
 
 name="brand"
@@ -757,7 +882,7 @@ value={form.brand}
 
 onChange={handleChange}
 
-placeholder="Brand Name"
+placeholder="Brand"
 
 className="
 rounded-xl
@@ -766,6 +891,9 @@ p-3
 "
 
 />
+
+
+
 
 
 
@@ -796,6 +924,8 @@ p-3
 
 
 
+
+
 <select
 
 name="category"
@@ -815,6 +945,7 @@ required
 >
 
 
+
 <option value="">
 
 Select Category
@@ -823,7 +954,21 @@ Select Category
 
 
 
+
+
+
 {
+
+categoryLoading
+
+?
+
+<option>
+Loading...
+</option>
+
+
+:
 
 categories.map(cat=>(
 
@@ -843,14 +988,21 @@ value={cat._id}
 
 ))
 
+
 }
+
+
+
 
 
 </select>
 
 
 
+
+
 </div>
+
 
 
 </section>
@@ -862,17 +1014,26 @@ value={cat._id}
 
 
 
+
+
+
+
 {/* DESCRIPTION */}
+
 
 
 <section>
 
 
-<h2 className="
+<h2
+
+className="
 mb-5
 text-xl
 font-bold
-">
+"
+
+>
 
 Description
 
@@ -882,6 +1043,7 @@ Description
 
 <textarea
 
+
 name="description"
 
 value={form.description}
@@ -890,7 +1052,7 @@ onChange={handleChange}
 
 rows={6}
 
-placeholder="Product description"
+placeholder="Product description..."
 
 className="
 w-full
@@ -914,17 +1076,28 @@ required
 
 
 
+
+
+
+
+
+
 {/* PRICE */}
+
 
 
 <section>
 
 
-<h2 className="
+<h2
+
+className="
 mb-5
 text-xl
 font-bold
-">
+"
+
+>
 
 Pricing & Inventory
 
@@ -932,20 +1105,26 @@ Pricing & Inventory
 
 
 
-<div className="
+
+
+<div
+
+className="
 grid
 gap-5
 md:grid-cols-3
-">
+"
+
+>
+
+
 
 
 
 <div>
 
-<label className="
-text-sm
-font-semibold
-">
+
+<label className="text-sm font-semibold">
 
 Regular Price
 
@@ -962,8 +1141,6 @@ value={form.price}
 
 onChange={handleChange}
 
-placeholder="100"
-
 className="
 mt-2
 w-full
@@ -972,12 +1149,14 @@ border
 p-3
 "
 
+placeholder="100"
+
 required
 
 />
 
-</div>
 
+</div>
 
 
 
@@ -988,10 +1167,7 @@ required
 <div>
 
 
-<label className="
-text-sm
-font-semibold
-">
+<label className="text-sm font-semibold">
 
 Discount Price
 
@@ -1008,8 +1184,6 @@ value={form.discountPrice}
 
 onChange={handleChange}
 
-placeholder="80"
-
 className="
 mt-2
 w-full
@@ -1018,7 +1192,12 @@ border
 p-3
 "
 
+placeholder="80"
+
 />
+
+
+
 
 
 
@@ -1027,11 +1206,16 @@ p-3
 discountPercentage>0 &&
 
 
-<p className="
+<p
+
+className="
 mt-2
 text-sm
+font-semibold
 text-green-600
-">
+"
+
+>
 
 Save {discountPercentage}%
 
@@ -1051,20 +1235,14 @@ Save {discountPercentage}%
 
 
 
-
-
 <div>
 
 
-<label className="
-text-sm
-font-semibold
-">
+<label className="text-sm font-semibold">
 
 Stock
 
 </label>
-
 
 
 <input
@@ -1077,8 +1255,6 @@ value={form.stock}
 
 onChange={handleChange}
 
-placeholder="50"
-
 className="
 mt-2
 w-full
@@ -1087,44 +1263,47 @@ border
 p-3
 "
 
+placeholder="50"
+
 required
 
 />
 
 
 
+
+
 </div>
 
 
 
+
+
 </div>
+
 
 
 </section>
-
-
-
-
-
-
-
-
-
-{/* IMAGE */}
+{/* IMAGE GALLERY */}
 
 
 <section>
 
 
-<h2 className="
+<h2
+
+className="
 mb-5
 text-xl
 font-bold
-">
+"
+
+>
 
 Product Gallery
 
 </h2>
+
 
 
 
@@ -1134,23 +1313,51 @@ Product Gallery
 className="
 flex
 cursor-pointer
+flex-col
 items-center
 justify-center
 gap-3
-rounded-2xl
+rounded-3xl
 border-2
 border-dashed
 p-10
+transition
 hover:bg-gray-50
 "
 
 >
 
 
-<Upload size={28}/>
+<Upload size={32}/>
 
 
-Upload Images
+<p
+
+className="
+font-semibold
+"
+
+>
+
+Upload Product Images
+
+</p>
+
+
+<p
+
+className="
+text-sm
+text-gray-500
+"
+
+>
+
+Maximum 6 images • 5MB each
+
+</p>
+
+
 
 
 
@@ -1164,9 +1371,12 @@ accept="image/*"
 
 onChange={handleImages}
 
-className="hidden"
+className="
+hidden
+"
 
 />
+
 
 
 </label>
@@ -1179,18 +1389,27 @@ className="hidden"
 
 
 
+{/* PREVIEW */}
+
+
+
 {
 
 previews.length>0 &&
 
 
-<div className="
+<div
+
+className="
 mt-6
 grid
 grid-cols-2
 gap-5
-md:grid-cols-4
-">
+md:grid-cols-3
+lg:grid-cols-6
+"
+
+>
 
 
 {
@@ -1206,26 +1425,35 @@ className="
 group
 relative
 overflow-hidden
-rounded-xl
+rounded-2xl
 border
+bg-gray-100
 "
 
 >
 
 
-<img
+<Image
 
 src={img}
 
 alt="preview"
 
+width={200}
+
+height={200}
+
 className="
-h-36
+h-32
 w-full
 object-cover
 "
 
 />
+
+
+
+
 
 
 
@@ -1250,11 +1478,11 @@ group-hover:opacity-100
 
 >
 
-
 <X size={16}/>
 
-
 </button>
+
+
 
 
 
@@ -1263,7 +1491,9 @@ group-hover:opacity-100
 
 ))
 
+
 }
+
 
 
 </div>
@@ -1275,6 +1505,11 @@ group-hover:opacity-100
 
 
 </section>
+
+
+
+
+
 
 
 
@@ -1290,15 +1525,20 @@ group-hover:opacity-100
 <section>
 
 
-<h2 className="
+<h2
+
+className="
 mb-5
 text-xl
 font-bold
-">
+"
+
+>
 
 Tags
 
 </h2>
+
 
 
 
@@ -1311,7 +1551,7 @@ value={form.tags}
 onChange={handleChange}
 
 placeholder="
-electronics, phone, laptop
+electronics, mobile, laptop
 "
 
 className="
@@ -1324,8 +1564,30 @@ p-3
 />
 
 
+<p
+
+className="
+mt-2
+text-sm
+text-gray-500
+"
+
+>
+
+Separate tags using comma
+
+</p>
+
+
 
 </section>
+
+
+
+
+
+
+
 
 
 
@@ -1337,34 +1599,61 @@ p-3
 {/* STATUS */}
 
 
+
 <section>
 
 
-<h2 className="
+<h2
+
+className="
 mb-5
 text-xl
 font-bold
-">
+"
 
-Status
+>
+
+Product Status
 
 </h2>
 
 
 
 
-<div className="
-flex
-flex-wrap
-gap-8
-">
 
 
-<label className="
+
+<div
+
+className="
+grid
+gap-4
+md:grid-cols-3
+"
+
+>
+
+
+
+
+
+
+
+
+<label
+
+className="
 flex
+cursor-pointer
 items-center
 gap-3
-">
+rounded-xl
+border
+p-4
+hover:bg-gray-50
+"
+
+>
 
 
 <input
@@ -1380,7 +1669,11 @@ onChange={handleChange}
 />
 
 
+<span>
+
 ⭐ Featured
+
+</span>
 
 
 </label>
@@ -1391,11 +1684,22 @@ onChange={handleChange}
 
 
 
-<label className="
+
+
+<label
+
+className="
 flex
+cursor-pointer
 items-center
 gap-3
-">
+rounded-xl
+border
+p-4
+hover:bg-gray-50
+"
+
+>
 
 
 <input
@@ -1411,7 +1715,11 @@ onChange={handleChange}
 />
 
 
+<span>
+
 🔥 Best Seller
+
+</span>
 
 
 </label>
@@ -1422,11 +1730,22 @@ onChange={handleChange}
 
 
 
-<label className="
+
+
+<label
+
+className="
 flex
+cursor-pointer
 items-center
 gap-3
-">
+rounded-xl
+border
+p-4
+hover:bg-gray-50
+"
+
+>
 
 
 <input
@@ -1442,14 +1761,23 @@ onChange={handleChange}
 />
 
 
+<span>
+
 ✨ New Arrival
+
+</span>
 
 
 </label>
 
 
 
+
+
+
 </div>
+
+
 
 
 </section>
@@ -1462,9 +1790,21 @@ onChange={handleChange}
 
 
 
+
+
+
+
+
+
+{/* SUBMIT */}
+
+
+
 <button
 
+
 disabled={loading}
+
 
 className="
 flex
@@ -1504,6 +1844,7 @@ loading
 }
 
 
+
 </button>
 
 
@@ -1515,8 +1856,11 @@ loading
 </form>
 
 
+
 </div>
 
 
+
 );
+
 }

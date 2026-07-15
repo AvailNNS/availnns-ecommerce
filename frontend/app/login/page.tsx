@@ -10,6 +10,7 @@ import {
   Mail,
   ShoppingBag,
 } from "lucide-react";
+import {loginUser} from "@/services/auth.service";
 
 import api from "@/services/api";
 

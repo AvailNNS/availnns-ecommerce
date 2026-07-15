@@ -2,39 +2,52 @@
 
 
 import {
-useEffect,
-useState
+  useEffect,
+  useState,
 } from "react";
-
-
-import {
-Package,
-Users,
-FolderTree,
-ShoppingCart,
-DollarSign,
-Star,
-Flame,
-AlertTriangle,
-Plus,
-Upload,
-ListOrdered
-} from "lucide-react";
 
 
 import Link from "next/link";
 
 
 import {
-getDashboardStats
-} from "@/services/dashboard.service";
+  Package,
+  Users,
+  FolderTree,
+  ShoppingCart,
+  DollarSign,
+  Star,
+  Flame,
+  AlertTriangle,
+  Plus,
+  ListOrdered,
+  Tags,
+} from "lucide-react";
+
 
 
 import useAdminAuth from "@/hooks/useAdminAuth";
 
 
+import {
+  getDashboardStats,
+} from "@/services/dashboard.service";
 
-type DashboardStats = {
+
+
+import OrderChart from "@/components/admin/OrderChart";
+
+import SalesChart from "@/components/admin/SalesChart";
+
+import TopProducts from "@/components/admin/TopProducts";
+
+
+
+
+
+
+
+type Stats = {
 
 totalProducts:number;
 
@@ -58,7 +71,12 @@ lowStockProducts:number;
 
 
 
+
+
+
+
 export default function AdminDashboardPage(){
+
 
 
 const {
@@ -67,13 +85,19 @@ loading:authLoading
 
 
 
-const [stats,setStats]=
-useState<DashboardStats|null>(null);
+
+
+const [stats,setStats] =
+useState<Stats|null>(null);
 
 
 
-const [error,setError]=
+const [error,setError] =
 useState("");
+
+
+
+
 
 
 
@@ -82,7 +106,7 @@ useState("");
 useEffect(()=>{
 
 
-const loadDashboard=async()=>{
+const loadDashboard = async()=>{
 
 
 try{
@@ -92,13 +116,18 @@ const token =
 localStorage.getItem("token");
 
 
+
 if(!token){
 
-setError("Unauthorized");
+setError(
+"Unauthorized"
+);
 
 return;
 
 }
+
+
 
 
 
@@ -111,12 +140,13 @@ setStats(data);
 
 
 
+
 }catch(err:any){
 
 
 setError(
 err.message ||
-"Dashboard loading failed"
+"Dashboard failed"
 );
 
 
@@ -129,6 +159,7 @@ err.message ||
 
 
 
+
 if(!authLoading){
 
 loadDashboard();
@@ -136,7 +167,10 @@ loadDashboard();
 }
 
 
+
 },[authLoading]);
+
+
 
 
 
@@ -150,13 +184,14 @@ if(authLoading || !stats){
 return (
 
 <div className="
-min-h-screen
+h-screen
 flex
 items-center
 justify-center
+font-semibold
 ">
 
-Loading dashboard...
+Loading Dashboard...
 
 </div>
 
@@ -169,13 +204,15 @@ Loading dashboard...
 
 
 
+
+
 if(error){
 
 
 return (
 
 <div className="
-rounded-xl
+rounded-2xl
 bg-red-100
 p-5
 text-red-600
@@ -195,6 +232,9 @@ text-red-600
 
 
 
+
+
+
 const cards=[
 
 
@@ -202,64 +242,64 @@ const cards=[
 title:"Products",
 value:stats.totalProducts,
 icon:<Package/>,
-color:"bg-blue-50"
 },
+
 
 
 {
 title:"Customers",
 value:stats.totalUsers,
 icon:<Users/>,
-color:"bg-green-50"
 },
+
 
 
 {
 title:"Categories",
 value:stats.totalCategories,
 icon:<FolderTree/>,
-color:"bg-purple-50"
 },
+
 
 
 {
 title:"Orders",
 value:stats.totalOrders,
 icon:<ShoppingCart/>,
-color:"bg-orange-50"
 },
+
 
 
 {
 title:"Revenue",
 value:`$${stats.totalRevenue}`,
 icon:<DollarSign/>,
-color:"bg-yellow-50"
 },
+
 
 
 {
 title:"Featured",
 value:stats.featuredProducts,
 icon:<Star/>,
-color:"bg-pink-50"
 },
+
 
 
 {
 title:"Best Sellers",
 value:stats.bestSellerProducts,
 icon:<Flame/>,
-color:"bg-red-50"
 },
+
 
 
 {
 title:"Low Stock",
 value:stats.lowStockProducts,
 icon:<AlertTriangle/>,
-color:"bg-red-100"
 },
+
 
 
 ];
@@ -270,11 +310,21 @@ color:"bg-red-100"
 
 
 
+
+
+
+
 return (
 
-<div className="space-y-10">
+<div className="
+space-y-10
+">
 
 
+
+
+
+{/* HEADER */}
 
 
 
@@ -283,10 +333,10 @@ return (
 
 <h1 className="
 text-4xl
-font-bold
+font-black
 ">
 
-Dashboard
+Admin Dashboard
 
 </h1>
 
@@ -296,7 +346,7 @@ mt-2
 text-gray-500
 ">
 
-Overview of your ecommerce store
+Manage your ecommerce business
 
 </p>
 
@@ -309,14 +359,18 @@ Overview of your ecommerce store
 
 
 
+
+
 {/* QUICK ACTION */}
+
 
 
 <div className="
 grid
-md:grid-cols-3
 gap-5
+md:grid-cols-3
 ">
+
 
 
 <Link
@@ -327,7 +381,7 @@ className="
 flex
 items-center
 gap-3
-rounded-2xl
+rounded-3xl
 bg-black
 p-5
 text-white
@@ -337,11 +391,16 @@ transition
 
 >
 
+
 <Plus/>
 
 Add Product
 
+
 </Link>
+
+
+
 
 
 
@@ -354,20 +413,25 @@ className="
 flex
 items-center
 gap-3
-rounded-2xl
-bg-white
+rounded-3xl
 border
+bg-white
 p-5
-hover:shadow
+hover:shadow-lg
 "
 
 >
 
+
 <ListOrdered/>
 
-Manage Products
+
+Products
+
 
 </Link>
+
+
 
 
 
@@ -381,20 +445,24 @@ className="
 flex
 items-center
 gap-3
-rounded-2xl
-bg-white
+rounded-3xl
 border
+bg-white
 p-5
-hover:shadow
+hover:shadow-lg
 "
 
 >
 
-<Upload/>
 
-Manage Categories
+<Tags/>
+
+
+Categories
+
 
 </Link>
+
 
 
 
@@ -407,16 +475,20 @@ Manage Categories
 
 
 
-{/* STAT CARDS */}
+
+
+
+{/* STATS */}
+
 
 
 <div className="
 grid
-grid-cols-1
+gap-6
 sm:grid-cols-2
 xl:grid-cols-4
-gap-6
 ">
+
 
 
 {
@@ -430,21 +502,22 @@ key={index}
 
 className="
 rounded-3xl
-bg-white
 border
+bg-white
 p-6
 shadow-sm
 hover:shadow-xl
 transition
 "
 
+
 >
 
 
 <div className="
 flex
-justify-between
 items-center
+justify-between
 ">
 
 
@@ -461,10 +534,11 @@ text-gray-500
 </p>
 
 
+
 <h2 className="
 mt-3
 text-3xl
-font-bold
+font-black
 ">
 
 {card.value}
@@ -476,11 +550,13 @@ font-bold
 
 
 
-<div className={`
+
+
+<div className="
 rounded-2xl
+bg-gray-100
 p-4
-${card.color}
-`}>
+">
 
 {card.icon}
 
@@ -488,8 +564,8 @@ ${card.color}
 
 
 
-</div>
 
+</div>
 
 
 </div>
@@ -501,6 +577,7 @@ ${card.color}
 }
 
 
+
 </div>
 
 
@@ -510,7 +587,9 @@ ${card.color}
 
 
 
-{/* ALERT SECTION */}
+
+{/* LOW STOCK */}
+
 
 
 {
@@ -519,19 +598,20 @@ stats.lowStockProducts > 0 &&
 
 
 <div className="
-rounded-3xl
-border
-bg-red-50
-p-6
 flex
 items-center
 gap-4
+rounded-3xl
+bg-red-50
+p-6
+border
 ">
 
 
 <AlertTriangle
 className="text-red-600"
 />
+
 
 
 <div>
@@ -542,9 +622,10 @@ font-bold
 text-lg
 ">
 
-Low Stock Alert
+Inventory Alert
 
 </h3>
+
 
 
 <p className="
@@ -557,6 +638,7 @@ products need restocking
 </p>
 
 
+
 </div>
 
 
@@ -573,84 +655,22 @@ products need restocking
 
 
 
-{/* STORE HEALTH */}
 
-
-<div className="
-rounded-3xl
-bg-white
-border
-p-8
-">
-
-
-<h2 className="
-text-xl
-font-bold
-mb-6
-">
-
-Store Performance
-
-</h2>
-
+{/* CHARTS */}
 
 
 
 <div className="
 grid
-md:grid-cols-3
 gap-6
+xl:grid-cols-2
 ">
 
 
-
-<div>
-
-<p className="text-gray-500">
-Revenue
-</p>
-
-<h3 className="text-2xl font-bold">
-${stats.totalRevenue}
-</h3>
-
-</div>
+<OrderChart/>
 
 
-
-
-<div>
-
-<p className="text-gray-500">
-Best Seller Products
-</p>
-
-<h3 className="text-2xl font-bold">
-{stats.bestSellerProducts}
-</h3>
-
-</div>
-
-
-
-
-<div>
-
-<p className="text-gray-500">
-Inventory Warning
-</p>
-
-<h3 className="text-2xl font-bold">
-{stats.lowStockProducts}
-</h3>
-
-</div>
-
-
-
-
-</div>
+<SalesChart/>
 
 
 </div>
@@ -661,7 +681,22 @@ Inventory Warning
 
 
 
+
+
+{/* TOP PRODUCTS */}
+
+
+
+<TopProducts/>
+
+
+
+
+
+
+
 </div>
+
 
 );
 

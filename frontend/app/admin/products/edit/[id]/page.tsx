@@ -5,19 +5,31 @@ import {
   useState,
 } from "react";
 
+
 import {
   useParams,
   useRouter,
 } from "next/navigation";
 
 
+import Image from "next/image";
+
+
 import {
-  ImagePlus,
-  X,
   Save,
-  Package,
+  X,
+  Upload,
   Loader2,
+  Package,
+  ImagePlus,
+  Sparkles,
 } from "lucide-react";
+
+
+import {
+  toast,
+} from "sonner";
+
 
 
 import {
@@ -37,14 +49,28 @@ import {
 
 
 
+
+
+
+
 export default function EditProductPage(){
 
 
-const router = useRouter();
 
-const params = useParams();
+const router =
+useRouter();
 
-const id = params.id as string;
+
+const params =
+useParams();
+
+
+const id =
+params.id as string;
+
+
+
+
 
 
 
@@ -53,8 +79,10 @@ const [loading,setLoading] =
 useState(true);
 
 
+
 const [saving,setSaving] =
 useState(false);
+
 
 
 const [error,setError] =
@@ -62,8 +90,14 @@ useState("");
 
 
 
+
+
+
+
 const [categories,setCategories] =
 useState<Category[]>([]);
+
+
 
 
 
@@ -78,7 +112,7 @@ useState<File[]>([]);
 
 
 
-const [preview,setPreview] =
+const [previewImages,setPreviewImages] =
 useState<string[]>([]);
 
 
@@ -86,8 +120,10 @@ useState<string[]>([]);
 
 
 
+
+
 const [form,setForm] =
-useState<any>({
+useState({
 
 name:"",
 
@@ -111,6 +147,8 @@ isFeatured:false,
 
 isBestSeller:false,
 
+isNewArrival:false,
+
 });
 
 
@@ -121,9 +159,57 @@ isBestSeller:false,
 
 
 
-// =========================
+
+
+// ==========================
+// DISCOUNT
+// ==========================
+
+
+const discountPercentage =
+
+Number(form.price)>0 &&
+Number(form.discountPrice)>0 &&
+Number(form.discountPrice)<Number(form.price)
+
+?
+
+
+Math.round(
+
+(
+Number(form.price)
+-
+Number(form.discountPrice)
+
+)
+
+/
+
+Number(form.price)
+
+*100
+
+)
+
+:
+
+0;
+
+
+
+
+
+
+
+
+
+
+
+
+// ==========================
 // LOAD PRODUCT
-// =========================
+// ==========================
 
 
 useEffect(()=>{
@@ -141,20 +227,24 @@ await getProductById(id);
 
 
 const product =
-res.products?.[0] ||
-res.product;
+res.product || res;
+
+
 
 
 
 if(!product){
 
-setError(
+
+throw new Error(
 "Product not found"
 );
 
-return;
 
 }
+
+
+
 
 
 
@@ -165,48 +255,68 @@ name:
 product.name || "",
 
 
+
 description:
 product.description || "",
+
 
 
 brand:
 product.brand || "",
 
 
+
 sku:
 product.sku || "",
 
 
+
 price:
-product.price || "",
+String(product.price || ""),
+
 
 
 discountPrice:
-product.discountPrice || "",
+String(product.discountPrice || ""),
+
 
 
 stock:
-product.stock || "",
+String(product.stock || ""),
+
 
 
 category:
+
 typeof product.category === "object"
+
 ?
+
 product.category._id
+
 :
-product.category,
+
+product.category || "",
+
 
 
 tags:
-product.tags?.join(",") || "",
+product.tags?.join(", ") || "",
+
 
 
 isFeatured:
 product.isFeatured || false,
 
 
+
 isBestSeller:
 product.isBestSeller || false,
+
+
+
+isNewArrival:
+product.isNewArrival || false,
 
 
 });
@@ -214,9 +324,15 @@ product.isBestSeller || false,
 
 
 
+
+
 setOldImages(
+
 product.images || []
+
 );
+
+
 
 
 
@@ -260,9 +376,11 @@ loadProduct();
 
 
 
-// =========================
-// LOAD CATEGORIES
-// =========================
+
+
+// ==========================
+// LOAD CATEGORY
+// ==========================
 
 
 useEffect(()=>{
@@ -278,6 +396,7 @@ const token =
 localStorage.getItem("token");
 
 
+
 if(!token)
 return;
 
@@ -287,17 +406,21 @@ const data =
 await getAdminCategories(token);
 
 
-setCategories(data);
+
+setCategories(
+data
+);
 
 
 
-}catch(err){
+}catch(error){
 
 
-console.log(err);
+console.log(error);
 
 
 }
+
 
 
 };
@@ -318,27 +441,28 @@ loadCategories();
 
 
 
-// =========================
+
+
+// ==========================
 // INPUT CHANGE
-// =========================
+// ==========================
 
 
 const handleChange =
 (
-e:any
+e:React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 )=>{
 
 
 const {
 name,
 value,
-type,
-checked
+type
 }=e.target;
 
 
 
-setForm((prev:any)=>({
+setForm(prev=>({
 
 ...prev,
 
@@ -348,14 +472,15 @@ setForm((prev:any)=>({
 type==="checkbox"
 
 ?
-checked
+
+(e.target as HTMLInputElement).checked
 
 :
+
 value
 
 
 }));
-
 
 
 };
@@ -368,14 +493,17 @@ value
 
 
 
-// =========================
-// NEW IMAGE SELECT
-// =========================
 
 
-const handleImages =
-(
+// ==========================
+// IMAGE SELECT
+// ==========================
+
+
+const handleImages = (
+
 e:React.ChangeEvent<HTMLInputElement>
+
 )=>{
 
 
@@ -385,21 +513,101 @@ return;
 
 
 const files =
-Array.from(e.target.files);
+Array.from(
+e.target.files
+);
 
 
 
-setNewImages(files);
 
 
 
-setPreview(
+const validFiles =
+files.filter(file=>{
 
-files.map(file=>
+
+if(
+!file.type.startsWith("image/")
+){
+
+
+toast.error(
+"Only images allowed"
+);
+
+
+return false;
+
+}
+
+
+
+
+if(
+file.size > 5*1024*1024
+){
+
+
+toast.error(
+"Image must be under 5MB"
+);
+
+
+return false;
+
+
+}
+
+
+
+return true;
+
+
+
+});
+
+
+
+
+
+
+
+setNewImages(prev=>
+
+[
+
+...prev,
+
+...validFiles
+
+].slice(0,6)
+
+);
+
+
+
+
+
+
+
+const urls =
+validFiles.map(file=>
 
 URL.createObjectURL(file)
 
-)
+);
+
+
+
+setPreviewImages(prev=>
+
+[
+
+...prev,
+
+...urls
+
+].slice(0,6)
 
 );
 
@@ -415,9 +623,11 @@ URL.createObjectURL(file)
 
 
 
-// =========================
+
+
+// ==========================
 // REMOVE OLD IMAGE
-// =========================
+// ==========================
 
 
 const removeOldImage =
@@ -443,9 +653,11 @@ prev.filter(
 
 
 
-// =========================
+
+
+// ==========================
 // REMOVE NEW IMAGE
-// =========================
+// ==========================
 
 
 const removeNewImage =
@@ -463,7 +675,7 @@ prev.filter(
 
 
 
-setPreview(prev=>
+setPreviewImages(prev=>
 
 prev.filter(
 (_,i)=>i!==index
@@ -471,31 +683,22 @@ prev.filter(
 )
 
 );
-
-
-
 };
- 
-// =========================
-// SUBMIT UPDATE
-// =========================
+// ==========================
+// UPDATE PRODUCT
+// ==========================
 
-
-const handleSubmit =
-async(
+const handleSubmit = async(
 e:React.FormEvent
 )=>{
 
-
 e.preventDefault();
-
 
 
 try{
 
 
 setSaving(true);
-
 setError("");
 
 
@@ -508,10 +711,27 @@ localStorage.getItem("token");
 if(!token){
 
 setError("Unauthorized");
+return;
+
+}
+
+
+
+
+if(
+form.discountPrice &&
+Number(form.discountPrice) >= Number(form.price)
+){
+
+setError(
+"Discount price must be lower than regular price"
+);
 
 return;
 
 }
+
+
 
 
 
@@ -527,10 +747,35 @@ Object.entries(form).forEach(
 ([key,value])=>{
 
 
+if(key==="tags"){
+
+
+const tags =
+value
+.toString()
+.split(",")
+.map(tag=>tag.trim())
+.filter(Boolean);
+
+
+
+data.append(
+"tags",
+JSON.stringify(tags)
+);
+
+
+
+}else{
+
+
 data.append(
 key,
 String(value)
 );
+
+
+}
 
 
 });
@@ -538,6 +783,10 @@ String(value)
 
 
 
+
+
+
+// existing images
 
 data.append(
 "oldImages",
@@ -548,8 +797,11 @@ JSON.stringify(oldImages)
 
 
 
-newImages.forEach(
-(file)=>{
+
+
+// new images
+
+newImages.forEach(file=>{
 
 
 data.append(
@@ -565,17 +817,20 @@ file
 
 
 
+
 await updateProduct(
-
 id,
-
 data,
-
 token
-
 );
 
 
+
+
+
+toast.success(
+"Product updated successfully"
+);
 
 
 
@@ -587,12 +842,12 @@ router.push(
 
 
 
+
 }catch(err:any){
 
 
 console.log(
-"UPDATE ERROR:",
-err.response?.data
+err
 );
 
 
@@ -616,63 +871,48 @@ setSaving(false);
 }
 
 
+
 };
 
-
-
-
-
-
-
-
-
-if(loading){
-
-
 return (
 
 <div className="
-flex
-h-96
-items-center
-justify-center
-gap-3
-">
-
-<Loader2
-className="animate-spin"
-/>
-
-Loading Product...
-
-
-</div>
-
-);
-
-
-}
-
-
-
-
-
-
-
-return (
-
-<div className="
-max-w-6xl
+max-w-7xl
 space-y-8
 ">
 
 
+{/* HEADER */}
+
 <div>
 
+<div className="
+flex
+items-center
+gap-3
+">
+
+<div className="
+flex
+h-12
+w-12
+items-center
+justify-center
+rounded-2xl
+bg-black
+text-white
+">
+
+<Package size={24}/>
+
+</div>
+
+
+<div>
 
 <h1 className="
 text-3xl
-font-bold
+font-black
 ">
 
 Edit Product
@@ -684,9 +924,15 @@ Edit Product
 text-gray-500
 ">
 
-Update your product details
+Update product information and inventory
 
 </p>
+
+
+</div>
+
+
+</div>
 
 
 </div>
@@ -697,32 +943,17 @@ Update your product details
 
 
 
-<form
-
-onSubmit={handleSubmit}
-
-className="
-rounded-3xl
-bg-white
-p-8
-shadow-xl
-space-y-8
-"
-
->
-
-
-
 
 
 {
 error &&
 
 <div className="
-rounded-xl
+rounded-2xl
 bg-red-100
 p-4
 text-red-600
+font-medium
 ">
 
 {error}
@@ -737,14 +968,60 @@ text-red-600
 
 
 
-{/* BASIC INFO */}
 
 
-<section>
+<form
 
+onSubmit={handleSubmit}
+
+className="
+space-y-8
+"
+
+>
+
+
+
+
+
+
+
+
+
+{/* BASIC INFORMATION */}
+
+
+<section className="
+rounded-3xl
+border
+bg-white
+p-8
+shadow-sm
+">
+
+
+<div className="
+mb-6
+flex
+items-center
+gap-3
+">
+
+
+<div className="
+rounded-xl
+bg-zinc-100
+p-3
+">
+
+<Package size={22}/>
+
+</div>
+
+
+<div>
 
 <h2 className="
-mb-4
 text-xl
 font-bold
 ">
@@ -752,6 +1029,27 @@ font-bold
 Basic Information
 
 </h2>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Product identity details
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
 
 
 
@@ -762,6 +1060,22 @@ md:grid-cols-2
 ">
 
 
+
+
+
+
+<div>
+
+<label className="
+text-sm
+font-semibold
+">
+
+Product Name
+
+</label>
+
+
 <input
 
 name="name"
@@ -770,17 +1084,43 @@ value={form.name}
 
 onChange={handleChange}
 
-placeholder="Product name"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
+outline-none
+focus:ring-2
+focus:ring-black
 "
+
+placeholder="iPhone 15 Pro Max"
 
 />
 
 
+</div>
+
+
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+Brand
+
+</label>
 
 
 
@@ -792,18 +1132,40 @@ value={form.brand}
 
 onChange={handleChange}
 
-placeholder="Brand"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
 "
 
+placeholder="Apple"
+
 />
 
 
+</div>
 
+
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+SKU
+
+</label>
 
 
 <input
@@ -814,19 +1176,40 @@ value={form.sku}
 
 onChange={handleChange}
 
-placeholder="SKU"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
 "
 
+placeholder="APL-001"
+
 />
 
 
+</div>
 
 
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+Category
+
+</label>
 
 
 <select
@@ -838,22 +1221,29 @@ value={form.category}
 onChange={handleChange}
 
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
 "
 
+
 >
 
 
 <option value="">
+
 Select category
+
 </option>
+
 
 
 {
 
 categories.map(cat=>(
+
 
 <option
 
@@ -870,11 +1260,16 @@ value={cat._id}
 
 ))
 
+
 }
 
 
-
 </select>
+
+
+</div>
+
+
 
 
 
@@ -891,14 +1286,23 @@ value={cat._id}
 
 
 
+
+
+
+
 {/* DESCRIPTION */}
 
 
-<section>
+<section className="
+rounded-3xl
+border
+bg-white
+p-8
+">
 
 
 <h2 className="
-mb-4
+mb-5
 text-xl
 font-bold
 ">
@@ -906,7 +1310,6 @@ font-bold
 Description
 
 </h2>
-
 
 
 <textarea
@@ -917,7 +1320,7 @@ value={form.description}
 
 onChange={handleChange}
 
-rows={5}
+rows={6}
 
 className="
 w-full
@@ -926,7 +1329,9 @@ border
 p-4
 "
 
-placeholder="Product description"
+placeholder="Write product details..."
+
+
 
 />
 
@@ -941,21 +1346,32 @@ placeholder="Product description"
 
 
 
-{/* PRICE */}
 
 
-<section>
+
+
+{/* PRICE + STOCK */}
+
+
+
+<section className="
+rounded-3xl
+border
+bg-white
+p-8
+">
 
 
 <h2 className="
-mb-4
+mb-6
 text-xl
 font-bold
 ">
 
-Pricing & Stock
+Pricing & Inventory
 
 </h2>
+
 
 
 
@@ -965,6 +1381,21 @@ gap-5
 md:grid-cols-3
 ">
 
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+Regular Price
+
+</label>
 
 
 <input
@@ -977,9 +1408,9 @@ value={form.price}
 
 onChange={handleChange}
 
-placeholder="Regular price"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
@@ -988,6 +1419,25 @@ p-3
 />
 
 
+</div>
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+Discount Price
+
+</label>
 
 
 
@@ -1001,9 +1451,9 @@ value={form.discountPrice}
 
 onChange={handleChange}
 
-placeholder="Discount price"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
@@ -1013,6 +1463,53 @@ p-3
 
 
 
+
+
+{
+discountPercentage>0 &&
+
+
+<div className="
+mt-2
+flex
+items-center
+gap-2
+text-sm
+text-green-600
+">
+
+
+<Sparkles size={15}/>
+
+Save {discountPercentage}%
+
+
+</div>
+
+
+}
+
+
+
+</div>
+
+
+
+
+
+
+
+<div>
+
+
+<label className="
+text-sm
+font-semibold
+">
+
+Stock Quantity
+
+</label>
 
 
 <input
@@ -1025,9 +1522,9 @@ value={form.stock}
 
 onChange={handleChange}
 
-placeholder="Stock"
-
 className="
+mt-2
+w-full
 rounded-xl
 border
 p-3
@@ -1040,6 +1537,10 @@ p-3
 
 
 
+
+</div>
+
+
 </section>
 
 
@@ -1050,34 +1551,83 @@ p-3
 
 
 
-{/* IMAGES */}
 
 
-<section>
 
+
+{/* PRODUCT GALLERY */}
+
+
+
+<section className="
+rounded-3xl
+border
+bg-white
+p-8
+">
+
+
+<div className="
+mb-6
+flex
+items-center
+justify-between
+">
+
+
+<div>
 
 <h2 className="
-mb-4
 text-xl
 font-bold
 ">
 
-Product Images
+Product Gallery
 
 </h2>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Maximum 6 images
+
+</p>
+
+
+</div>
+
+
+
+<ImagePlus/>
+
+
+</div>
+
+
+
+
+
+
 
 
 
 <div className="
 grid
 grid-cols-2
-gap-4
-md:grid-cols-5
+gap-5
+md:grid-cols-6
 ">
 
 
+
 {
+
+
 oldImages.map(
+
 (img,index)=>(
 
 
@@ -1087,17 +1637,25 @@ key={index}
 
 className="
 relative
+group
 overflow-hidden
 rounded-xl
 border
 "
 
+
 >
 
 
-<img
+<Image
 
 src={img.url}
+
+alt="product"
+
+width={200}
+
+height={200}
 
 className="
 h-32
@@ -1121,22 +1679,30 @@ right-2
 top-2
 rounded-full
 bg-black
-p-1
+p-2
 text-white
+opacity-0
+group-hover:opacity-100
+transition
 "
 
 >
 
+
 <X size={14}/>
 
-</button>
 
+</button>
 
 
 </div>
 
 
-))
+)
+
+
+)
+
 
 
 }
@@ -1146,17 +1712,22 @@ text-white
 
 
 
+
 {
-preview.map(
+
+
+previewImages.map(
+
 (img,index)=>(
 
 
 <div
 
-key={index}
+key={img}
 
 className="
 relative
+group
 overflow-hidden
 rounded-xl
 border
@@ -1191,29 +1762,36 @@ right-2
 top-2
 rounded-full
 bg-black
-p-1
+p-2
 text-white
 "
 
 >
 
+
 <X size={14}/>
 
-</button>
 
+</button>
 
 
 </div>
 
 
+)
 
-))
+
+)
+
 
 
 }
 
 
+
 </div>
+
+
 
 
 
@@ -1222,7 +1800,7 @@ text-white
 
 
 <label className="
-mt-5
+mt-6
 flex
 cursor-pointer
 items-center
@@ -1233,13 +1811,14 @@ border-2
 border-dashed
 p-8
 hover:bg-gray-50
+transition
 ">
 
 
-<ImagePlus/>
+<Upload/>
+
 
 Upload New Images
-
 
 
 <input
@@ -1261,6 +1840,67 @@ className="hidden"
 
 
 
+
+</section>
+{/* SEO & TAGS */}
+
+<section className="
+rounded-3xl
+border
+bg-white
+p-8
+">
+
+
+<h2 className="
+mb-5
+text-xl
+font-bold
+">
+
+SEO & Tags
+
+</h2>
+
+
+
+<input
+
+name="tags"
+
+value={form.tags}
+
+onChange={handleChange}
+
+placeholder="
+electronics, mobile, laptop
+"
+
+className="
+w-full
+rounded-xl
+border
+p-3
+focus:ring-2
+focus:ring-black
+outline-none
+"
+
+/>
+
+
+
+<p className="
+mt-2
+text-sm
+text-gray-500
+">
+
+Separate tags with commas
+
+</p>
+
+
 </section>
 
 
@@ -1271,21 +1911,78 @@ className="hidden"
 
 
 
-{/* OPTIONS */}
+{/* STATUS */}
+
 
 
 <section className="
-flex
-gap-8
-flex-wrap
+rounded-3xl
+border
+bg-white
+p-8
 ">
+
+
+<h2 className="
+mb-6
+text-xl
+font-bold
+">
+
+Product Status
+
+</h2>
+
+
+
+
+<div className="
+grid
+gap-5
+md:grid-cols-3
+">
+
+
+
 
 
 <label className="
 flex
 items-center
-gap-2
+justify-between
+rounded-2xl
+border
+p-4
+cursor-pointer
+hover:bg-gray-50
 ">
+
+
+<div>
+
+
+<p className="
+font-semibold
+">
+
+Featured Product
+
+</p>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Show on homepage
+
+</p>
+
+
+</div>
+
+
 
 
 <input
@@ -1301,10 +1998,11 @@ onChange={handleChange}
 />
 
 
-Featured
-
 
 </label>
+
+
+
 
 
 
@@ -1314,8 +2012,39 @@ Featured
 <label className="
 flex
 items-center
-gap-2
+justify-between
+rounded-2xl
+border
+p-4
+cursor-pointer
+hover:bg-gray-50
 ">
+
+
+<div>
+
+
+<p className="
+font-semibold
+">
+
+Best Seller
+
+</p>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Popular product badge
+
+</p>
+
+
+</div>
+
 
 
 <input
@@ -1331,10 +2060,75 @@ onChange={handleChange}
 />
 
 
-Best Seller
+</label>
+
+
+
+
+
+
+
+
+
+<label className="
+flex
+items-center
+justify-between
+rounded-2xl
+border
+p-4
+cursor-pointer
+hover:bg-gray-50
+">
+
+
+<div>
+
+
+<p className="
+font-semibold
+">
+
+New Arrival
+
+</p>
+
+
+<p className="
+text-sm
+text-gray-500
+">
+
+Latest collection
+
+</p>
+
+
+</div>
+
+
+
+<input
+
+type="checkbox"
+
+name="isNewArrival"
+
+checked={form.isNewArrival}
+
+onChange={handleChange}
+
+/>
 
 
 </label>
+
+
+
+
+
+
+</div>
 
 
 </section>
@@ -1347,6 +2141,24 @@ Best Seller
 
 
 
+
+
+
+{/* ACTION BUTTON */}
+
+
+
+<div className="
+sticky
+bottom-5
+rounded-3xl
+border
+bg-white
+p-5
+shadow-xl
+">
+
+
 <button
 
 disabled={saving}
@@ -1356,18 +2168,19 @@ flex
 w-full
 items-center
 justify-center
-gap-2
+gap-3
 rounded-2xl
 bg-black
 py-4
-font-bold
 text-white
+font-bold
 transition
-hover:opacity-90
+hover:scale-[1.01]
 disabled:opacity-50
 "
 
 >
+
 
 
 {
@@ -1379,11 +2192,17 @@ saving
 <>
 
 <Loader2
-size={18}
-className="animate-spin"
+
+size={20}
+
+className="
+animate-spin
+"
+
 />
 
-Updating...
+Updating Product...
+
 
 </>
 
@@ -1392,9 +2211,11 @@ Updating...
 
 <>
 
-<Save size={18}/>
+<Save size={20}/>
 
-Save Changes
+
+Save Product Changes
+
 
 </>
 
@@ -1406,6 +2227,13 @@ Save Changes
 </button>
 
 
+</div>
+
+
+
+
+
+
 
 
 
@@ -1413,8 +2241,5 @@ Save Changes
 
 
 </div>
-
-
 );
-
 }
