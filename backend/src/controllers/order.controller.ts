@@ -275,49 +275,38 @@ export const createOrder = async (
     subtotal -
     discountAmount;
 
+    const order = await Order.create({
 
+  user: userId,
 
+  items: orderItems,
 
+  shippingAddress,
 
+  paymentMethod:
+    paymentMethod || "COD",
 
+  paymentStatus:
+    "pending",
 
-    const order =
+  paymentInfo: {
 
-    await Order.create({
+    transactionId:
+      transactionId || "",
 
+  },
 
-      user:userId,
+  orderStatus:
+    "pending",
 
+  totalPrice:
+    finalPrice,
 
-      items:orderItems,
+  discountAmount,
 
+  couponCode,
 
-      shippingAddress,
-
-
-      paymentMethod,
-
-
-      transactionId,
-
-
-      totalPrice:
-      finalPrice,
-
-
-      discountAmount,
-
-
-      couponCode
-
-
-
-    });
-
-
-
-
-
+});
 
 
     // =========================
@@ -615,14 +604,6 @@ export const getOrderById = async (
 
 
 
-
-
-
-
-
-
-
-
 // ===============================
 // ADMIN UPDATE ORDER STATUS
 // ===============================
@@ -646,56 +627,51 @@ export const updateOrderStatus = async (
 
 
     const order =
+  await Order.findById(
+    req.params.id
+  );
 
-    await Order.findByIdAndUpdate(
+if (!order) {
 
-      req.params.id,
+  res.status(404).json({
 
-      {
+    success:false,
 
-        orderStatus:
-        status
+    message:
+      "Order not found",
 
-      },
+  });
 
-      {
+  return;
 
-        new:true
+}
 
-      }
+order.orderStatus =
+  status;
 
-    );
+if (
 
+  status === "delivered" &&
 
+  order.paymentMethod === "COD"
 
+) {
 
+  order.paymentStatus =
+    "paid";
 
+  order.paymentInfo = {
 
+    ...order.paymentInfo,
 
+    paidAt:
+      new Date(),
 
-    if(!order){
+  };
 
+}
 
-      res.status(404).json({
-
-        success:false,
-
-        message:
-        "Order not found"
-
-      });
-
-
-      return;
-
-
-    }
-
-
-
-
-
-
+await order.save();
 
 
     res.status(200).json({
@@ -708,10 +684,6 @@ export const updateOrderStatus = async (
       order
 
     });
-
-
-
-
 
 
 

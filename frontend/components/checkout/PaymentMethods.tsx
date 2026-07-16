@@ -1,5 +1,6 @@
 "use client";
 
+
 import {
   CreditCard,
   Wallet,
@@ -7,75 +8,144 @@ import {
 } from "lucide-react";
 
 
+
 interface Props {
 
-  paymentMethod:string;
 
-  transactionId:string;
+paymentMethod:string;
 
-  selectPayment:(method:string)=>void;
 
-  handleChange:(
-    e:React.ChangeEvent<HTMLInputElement>
-  )=>void;
+transactionId:string;
+
+
+selectPayment:(method:string)=>void;
+
+
+handleChange:(
+e:React.ChangeEvent<HTMLInputElement>
+)=>void;
+
 
 }
 
 
 
+
+
+
+
 export default function PaymentMethods({
 
-  paymentMethod,
+paymentMethod,
 
-  transactionId,
+transactionId,
 
-  selectPayment,
+selectPayment,
 
-  handleChange,
+handleChange,
+
 
 }:Props){
 
 
 
-const methods=[
+
+
+
+const methods = [
+
 
 {
+
 value:"COD",
+
 label:"Cash On Delivery",
+
 icon:Banknote,
-description:"Pay after receiving your order"
+
+description:
+"Pay after receiving your order"
+
+
 },
 
 
+
 {
+
 value:"CARD",
+
 label:"Card Payment",
+
 icon:CreditCard,
-description:"Visa / Mastercard"
+
+description:
+"Visa / Mastercard / Online payment"
+
+
 },
 
 
+
 {
+
 value:"BKASH",
+
 label:"bKash",
+
 icon:Wallet,
-description:"Mobile payment"
+
+description:
+"Mobile payment"
+
+
 },
+
 
 
 {
+
 value:"NAGAD",
+
 label:"Nagad",
+
 icon:Wallet,
-description:"Mobile payment"
+
+description:
+"Mobile payment"
+
+
 },
+
 
 ];
 
 
 
 
+
+
+
+
+const needTransactionId =
+
+paymentMethod==="BKASH"
+
+||
+
+paymentMethod==="NAGAD";
+
+
+
+
+
+
+
+
+
+
 return (
+
 
 <div className="
 rounded-3xl
@@ -84,6 +154,9 @@ bg-white
 p-6
 shadow-sm
 ">
+
+
+
 
 
 <h2 className="
@@ -100,6 +173,10 @@ Payment Method
 
 
 
+
+
+
+
 <div className="
 grid
 gap-4
@@ -107,17 +184,28 @@ md:grid-cols-2
 ">
 
 
+
+
+
+
 {
+
 methods.map((method)=>(
+
 
 
 <button
 
+
 key={method.value}
+
 
 type="button"
 
+
 onClick={()=>selectPayment(method.value)}
+
+
 
 className={`
 
@@ -129,14 +217,16 @@ p-5
 
 text-left
 
-transition
+transition-all
+
 
 ${
+
 paymentMethod===method.value
 
 ?
 
-"border-black bg-zinc-100"
+"border-black bg-zinc-100 shadow-md"
 
 :
 
@@ -146,7 +236,14 @@ paymentMethod===method.value
 
 `}
 
+
+
 >
+
+
+
+
+
 
 
 <div className="
@@ -154,6 +251,9 @@ flex
 items-center
 gap-4
 ">
+
+
+
 
 
 <div className="
@@ -176,7 +276,10 @@ bg-zinc-100
 
 
 
+
+
 <div>
+
 
 
 <h3 className="
@@ -186,6 +289,7 @@ font-semibold
 {method.label}
 
 </h3>
+
 
 
 
@@ -201,22 +305,41 @@ text-zinc-500
 
 
 
+
+
 </div>
 
 
 
+
+
+
+
 </div>
+
+
+
+
 
 
 </button>
 
 
+
+
 ))
+
 
 }
 
 
+
+
+
+
 </div>
+
+
 
 
 
@@ -225,10 +348,16 @@ text-zinc-500
 
 
 {
-paymentMethod!=="COD" &&
+
+needTransactionId &&
+
+
 
 <div className="
 mt-6
+rounded-2xl
+bg-zinc-50
+p-5
 ">
 
 
@@ -236,39 +365,75 @@ mt-6
 mb-2
 block
 text-sm
-font-medium
+font-semibold
 ">
 
+
 Transaction ID
+
 
 </label>
 
 
 
+
+
 <input
+
 
 name="transactionId"
 
+
 value={transactionId}
+
+
 
 onChange={handleChange}
 
-placeholder="Enter transaction ID"
+
+
+placeholder={
+`Enter ${paymentMethod} transaction ID`
+}
+
+
 
 className="
 w-full
 rounded-xl
 border
+bg-white
 p-4
 outline-none
+transition
 focus:border-black
 "
+
+
 
 />
 
 
 
+
+
+<p className="
+mt-2
+text-xs
+text-zinc-500
+">
+
+Please enter your payment transaction ID after completing payment.
+
+
+</p>
+
+
+
+
 </div>
+
+
 
 }
 
@@ -276,7 +441,71 @@ focus:border-black
 
 
 
+
+
+
+
+{
+
+paymentMethod==="CARD" &&
+
+
+<div className="
+mt-6
+rounded-2xl
+bg-blue-50
+p-5
+text-sm
+text-blue-700
+">
+
+
+Card payment will redirect you to secure payment gateway.
+
+
 </div>
+
+
+}
+
+
+
+
+
+
+
+
+{
+
+paymentMethod==="COD" &&
+
+
+<div className="
+mt-6
+rounded-2xl
+bg-green-50
+p-5
+text-sm
+text-green-700
+">
+
+
+You can pay cash when your order arrives.
+
+
+</div>
+
+
+}
+
+
+
+
+
+
+
+</div>
+
 
 
 );

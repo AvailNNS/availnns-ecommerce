@@ -1,38 +1,45 @@
 "use client";
 
-import { MapPin } from "lucide-react";
 
+import {
+  User,
+  Phone,
+  MapPin,
+} from "lucide-react";
 
-interface FormData {
-  name:string;
-  phone:string;
-  address:string;
-  city:string;
-  state:string;
-  postalCode:string;
-  country:string;
-}
 
 
 interface Props {
 
-  form:FormData;
 
-  handleChange:(
-    e:React.ChangeEvent<HTMLInputElement>
-  )=>void;
+form:any;
+
+
+handleChange:(
+
+e:React.ChangeEvent<HTMLInputElement>
+
+)=>void;
+
 
 }
 
 
 
+
+
 export default function ShippingForm({
-  form,
-  handleChange,
+
+form,
+
+handleChange,
+
 }:Props){
 
 
+
 return (
+
 
 <div className="
 rounded-3xl
@@ -43,20 +50,64 @@ shadow-sm
 ">
 
 
-<h2 className="
+
+
+
+<div className="
 mb-6
 flex
 items-center
 gap-3
+">
+
+
+<div className="
+flex
+h-12
+w-12
+items-center
+justify-center
+rounded-xl
+bg-zinc-100
+">
+
+<User size={24}/>
+
+</div>
+
+
+<div>
+
+
+<h2 className="
 text-xl
 font-bold
 ">
 
-<MapPin size={24}/>
-
-Shipping Address
+Delivery Information
 
 </h2>
+
+
+<p className="
+text-sm
+text-zinc-500
+">
+
+Enter your delivery details
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
 
 
 
@@ -65,111 +116,224 @@ space-y-5
 ">
 
 
+
+
+
+
+{/* NAME */}
+
+
+<div>
+
+
+<label className="
+mb-2
+block
+text-sm
+font-semibold
+">
+
+Full Name
+
+</label>
+
+
+
+<div className="
+relative
+">
+
+
+<User
+
+size={18}
+
+className="
+absolute
+left-4
+top-4
+text-zinc-400
+"
+
+/>
+
+
 <input
+
 
 name="name"
 
+
 value={form.name}
 
-onChange={handleChange}
 
-placeholder="Full Name"
+readOnly
 
-required
 
 className="
 w-full
 rounded-xl
 border
-p-4
+bg-zinc-100
+py-3
+pl-12
+pr-4
 outline-none
-focus:border-black
+"
+
+
+placeholder="Your name"
+
+/>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* PHONE */}
+
+
+<div>
+
+
+<label className="
+mb-2
+block
+text-sm
+font-semibold
+">
+
+Bangladesh Phone Number
+
+</label>
+
+
+
+<div className="
+relative
+">
+
+
+<Phone
+
+size={18}
+
+className="
+absolute
+left-4
+top-4
+text-zinc-400
 "
 
 />
 
 
 
-
-
 <input
+
 
 name="phone"
 
+
 value={form.phone}
 
+
 onChange={handleChange}
 
-placeholder="Phone Number"
 
-required
+
+placeholder="017XXXXXXXX"
+
 
 className="
 w-full
 rounded-xl
 border
-p-4
+py-3
+pl-12
+pr-4
 outline-none
 focus:border-black
 "
 
-/>
-
-
-
-
-
-
-<input
-
-name="address"
-
-value={form.address}
-
-onChange={handleChange}
-
-placeholder="Address"
 
 required
 
-className="
-w-full
-rounded-xl
-border
-p-4
-outline-none
-focus:border-black
-"
 
 />
 
+
+
+</div>
+
+
+
+<p className="
+mt-2
+text-xs
+text-zinc-500
+">
+
+Example: 01712345678
+
+</p>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* ADDRESS */}
+
+
+<div>
+
+
+<label className="
+mb-2
+block
+text-sm
+font-semibold
+">
+
+House / Full Address
+
+</label>
 
 
 
 
 <div className="
-grid
-gap-4
-md:grid-cols-3
+relative
 ">
 
 
-<input
+<MapPin
 
-name="city"
-
-value={form.city}
-
-onChange={handleChange}
-
-placeholder="City"
+size={18}
 
 className="
-rounded-xl
-border
-p-4
-outline-none
-focus:border-black
+absolute
+left-4
+top-4
+text-zinc-400
 "
 
 />
@@ -177,89 +341,134 @@ focus:border-black
 
 
 
-<input
+<textarea
 
-name="state"
 
-value={form.state}
+name="address"
 
-onChange={handleChange}
 
-placeholder="State"
 
-className="
-rounded-xl
-border
-p-4
-outline-none
-focus:border-black
+value={form.address}
+
+
+
+onChange={
+
+(e)=>
+
+handleChange(
+e as any
+)
+
+}
+
+
+
+rows={4}
+
+
+
+placeholder="
+House number, building, floor etc.
 "
 
-/>
 
-
-
-
-
-<input
-
-name="postalCode"
-
-value={form.postalCode}
-
-onChange={handleChange}
-
-placeholder="Postal Code"
-
-className="
-rounded-xl
-border
-p-4
-outline-none
-focus:border-black
-"
-
-/>
-
-
-</div>
-
-
-
-
-
-
-<input
-
-name="country"
-
-value={form.country}
-
-onChange={handleChange}
-
-placeholder="Country"
 
 className="
 w-full
 rounded-xl
 border
-p-4
+py-3
+pl-12
+pr-4
 outline-none
 focus:border-black
 "
+
+
+
+required
+
+
 
 />
 
 
 
 
+</div>
+
+
 
 </div>
+
+
+
+
+
+
+
+
+
+{/* COUNTRY */}
+
+
+<div>
+
+
+<label className="
+mb-2
+block
+text-sm
+font-semibold
+">
+
+Country
+
+</label>
+
+
+
+<input
+
+
+value="Bangladesh"
+
+
+
+readOnly
+
+
+
+className="
+w-full
+rounded-xl
+border
+bg-zinc-100
+p-3
+"
+
+
+/>
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
 
 
 </div>
 
 
 );
+
 
 }

@@ -1,13 +1,39 @@
 "use client";
 
+
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
 
+
 import {
   useRouter,
 } from "next/navigation";
+
+
+import {
+  Loader2,
+} from "lucide-react";
+
+
+import api from "@/services/api";
+
+
+import {
+  createOrder,
+} from "@/services/order.service";
+
+
+import {
+  initiatePayment,
+} from "@/services/payment.service";
+
+
+
+import useCart from "@/hooks/useCart";
+
 
 
 import CheckoutHeader from "@/components/checkout/CheckoutHeader";
@@ -18,105 +44,150 @@ import PaymentMethods from "@/components/checkout/PaymentMethods";
 import CouponBox from "@/components/checkout/CouponBox";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import SecureCheckout from "@/components/checkout/SecureCheckout";
+import LocationPicker from "@/components/checkout/LocationPicker";
 
 
-import useCart from "@/hooks/useCart";
 
-import {
-  createOrder,
-} from "@/services/order.service";
-
-import {
-  Loader2,
-} from "lucide-react";
 
 
 
 export default function CheckoutPage(){
 
 
+
 const router = useRouter();
 
 
+
 const {
- cart,
- clearCart,
- loading:cartLoading,
+
+cart,
+
+clearCart,
+
+loading:cartLoading
+
 }=useCart();
 
 
 
-const items = cart?.items || [];
+
+
+const items =
+cart?.items || [];
 
 
 
 
-const [loading,setLoading]
-=
+
+const [user,setUser]=
+useState<any>(null);
+
+
+
+const [loading,setLoading]=
 useState(false);
 
 
 
-const [error,setError]
-=
+const [error,setError]=
 useState("");
 
 
 
-const [coupon,setCoupon]
-=
+
+
+const [coupon,setCoupon]=
 useState("");
 
 
 
-const [discount,setDiscount]
-=
+const [discount,setDiscount]=
 useState(0);
 
 
 
-const [applied,setApplied]
-=
+const [applied,setApplied]=
 useState(false);
 
 
 
-const [couponError,setCouponError]
-=
+const [couponError,setCouponError]=
 useState("");
 
 
 
-const [delivery,setDelivery]
-=
+
+
+
+const [delivery,setDelivery]=
 useState<
-"standard" | "express"
->("standard");
+"standard"|"express"
+>(
+"standard"
+);
 
 
 
 
-const [form,setForm]
-=
+
+
+
+
+const [form,setForm]=
 useState({
+
 
 name:"",
 
+
 phone:"",
+
 
 address:"",
 
-city:"",
 
-state:"",
+country:"Bangladesh",
 
-postalCode:"",
 
-country:"Saudi Arabia",
+
+location:{
+
+
+formattedAddress:"",
+
+
+division:"",
+
+
+district:"",
+
+
+area:"",
+
+
+road:"",
+
+
+latitude:"",
+
+
+longitude:"",
+
+
+googleMapLink:"",
+
+
+},
+
+
 
 paymentMethod:"COD",
 
+
+
 transactionId:"",
+
 
 });
 
@@ -125,18 +196,131 @@ transactionId:"",
 
 
 
-const handleChange = (
+
+
+
+
+// ============================
+// LOAD USER
+// ============================
+
+
+useEffect(()=>{
+
+
+const loadUser=async()=>{
+
+
+try{
+
+
+const res =
+await api.get(
+"/users/me"
+);
+
+
+setUser(
+res.data.user
+);
+
+
+}
+catch(err){
+
+
+console.log(err);
+
+
+}
+
+
+};
+
+
+
+loadUser();
+
+
+
+},[]);
+
+
+
+
+
+
+
+
+
+// ============================
+// AUTO USER DATA
+// ============================
+
+
+useEffect(()=>{
+
+
+if(user){
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+name:
+user.name || "",
+
+
+
+phone:
+user.phone || "",
+
+
+
+}));
+
+
+}
+
+
+},[user]);
+
+
+
+
+
+
+
+
+
+
+
+// ============================
+// CHANGE
+// ============================
+
+
+const handleChange=(
+
 e:React.ChangeEvent<HTMLInputElement>
+
 )=>{
 
 
 setForm(prev=>({
 
+
 ...prev,
+
 
 [e.target.name]:
 e.target.value
 
+
+
 }));
 
 
@@ -148,14 +332,25 @@ e.target.value
 
 
 
-const selectPayment=(method:string)=>{
+
+
+const selectPayment=(
+
+method:string
+
+)=>{
 
 
 setForm(prev=>({
 
+
 ...prev,
 
-paymentMethod:method
+
+paymentMethod:
+method
+
+
 
 }));
 
@@ -167,7 +362,18 @@ paymentMethod:method
 
 
 
+
+
+
+
+
+// ============================
+// PRICE
+// ============================
+
+
 const subtotal =
+
 useMemo(()=>{
 
 
@@ -177,14 +383,13 @@ return items.reduce(
 
 sum +
 
-(
 item.price *
-item.quantity
-),
+item.quantity,
 
 0
 
 );
+
 
 
 },[items]);
@@ -194,27 +399,40 @@ item.quantity
 
 
 
-
 const shipping =
+
 delivery==="express"
+
 ?
+
 25
+
 :
+
 10;
 
 
 
 
+
+
 const tax =
+
 subtotal * 0.05;
 
 
 
 
+
+
 const total =
+
 subtotal +
+
 shipping +
+
 tax -
+
 discount;
 
 
@@ -224,31 +442,48 @@ discount;
 
 
 
+
+
+
+// ============================
+// COUPON
+// ============================
+
+
 const applyCoupon=()=>{
 
 
-if(coupon.toUpperCase()==="SAVE10"){
+if(
+coupon.toUpperCase()
+==="SAVE10"
+){
 
 
-const value =
+
+const amount =
 subtotal * 0.10;
 
 
-setDiscount(value);
+
+setDiscount(amount);
+
 
 setApplied(true);
+
 
 setCouponError("");
 
 
-}
 
+}
 else{
 
 
 setDiscount(0);
 
+
 setApplied(false);
+
 
 setCouponError(
 "Invalid coupon code"
@@ -258,6 +493,39 @@ setCouponError(
 }
 
 
+};
+
+
+
+
+
+
+
+
+
+
+
+// ============================
+// LOCATION
+// ============================
+
+
+const setLocation=(data:any)=>{
+
+
+setForm(prev=>({
+
+
+...prev,
+
+
+location:data
+
+
+
+}));
+
+
 
 };
 
@@ -268,13 +536,23 @@ setCouponError(
 
 
 
-const handleSubmit =
-async(
+
+
+
+// ============================
+// ORDER
+// ============================
+
+
+const handleSubmit=async(
+
 e:React.FormEvent
+
 )=>{
 
 
 e.preventDefault();
+
 
 
 try{
@@ -282,20 +560,78 @@ try{
 
 setLoading(true);
 
+
 setError("");
+
 
 
 
 
 if(items.length===0){
 
+
 setError(
-"Your cart is empty"
+"Cart is empty"
 );
+
 
 return;
 
+
 }
+
+
+
+
+
+
+// BANGLADESH PHONE CHECK
+
+
+if(
+!/^01[3-9]\d{8}$/
+.test(form.phone)
+
+){
+
+
+setError(
+"Invalid Bangladesh phone number"
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+
+
+if(
+!form.location.latitude ||
+!form.location.longitude
+){
+
+
+setError(
+"Please select delivery location"
+);
+
+
+return;
+
+
+}
+
+
+
+
+
 
 
 
@@ -304,54 +640,81 @@ return;
 const orderData={
 
 
-items:items.map(
-
-(item:any)=>({
-
-product:item.product._id,
-
-quantity:item.quantity,
-
-price:item.price
-
-})
-
-),
-
-
 
 shippingAddress:{
+
 
 
 fullName:
 form.name,
 
 
+
 phone:
 form.phone,
+
 
 
 address:
 form.address,
 
 
-city:
-form.city,
-
-
-state:
-form.state,
-
-
-postalCode:
-form.postalCode,
-
 
 country:
-form.country
+"Bangladesh",
+
+
+
+
+location:{
+
+
+formattedAddress:
+form.location.formattedAddress,
+
+
+
+division:
+form.location.division,
+
+
+
+district:
+form.location.district,
+
+
+
+area:
+form.location.area,
+
+
+
+road:
+form.location.road,
+
+
+
+latitude:
+form.location.latitude,
+
+
+
+longitude:
+form.location.longitude,
+
+
+
+googleMapLink:
+form.location.googleMapLink,
+
+
+
+}
 
 
 },
+
+
 
 
 
@@ -359,16 +722,14 @@ paymentMethod:
 form.paymentMethod,
 
 
+
 transactionId:
 form.transactionId || null,
 
 
+
 couponCode:
 coupon || null,
-
-
-totalPrice:
-total
 
 
 
@@ -379,7 +740,11 @@ total
 
 
 
+
+
+
 const res =
+
 await createOrder(
 orderData
 );
@@ -388,24 +753,125 @@ orderData
 
 
 
-await clearCart();
+
+const orderId =
+res.order._id;
 
 
 
 
 
-router.push(
 
-`/checkout/success?order=${res.order._id}`
 
+
+
+// =====================
+// SSL COMMERZ
+// =====================
+
+
+if(
+form.paymentMethod==="SSLCOMMERZ"
+){
+
+
+
+const payment =
+
+await initiatePayment({
+
+
+orderId,
+
+
+amount:
+total,
+
+
+customerName:
+form.name,
+
+
+phone:
+form.phone,
+
+
+address:
+form.location.formattedAddress,
+
+
+});
+
+
+
+
+
+
+const url =
+
+payment
+?.payment
+?.GatewayPageURL;
+
+
+
+
+
+
+if(url){
+
+
+window.location.href=url;
+
+
+}
+else{
+
+
+setError(
+"Payment gateway error"
 );
+
+
+}
+
 
 
 
 
 }
 
+
+
+
+
+
+
+else{
+
+
+await clearCart();
+
+
+
+router.push(
+
+`/checkout/success?order=${orderId}`
+
+);
+
+
+}
+
+
+
+
+}
 catch(err:any){
+
+
+console.log(err);
+
 
 
 setError(
@@ -415,7 +881,6 @@ err?.response?.data?.message ||
 "Order failed"
 
 );
-
 
 
 }
@@ -431,6 +896,7 @@ setLoading(false);
 
 
 };
+
 
 
 
@@ -459,10 +925,13 @@ className="animate-spin"
 
 </div>
 
+
 );
 
 
 }
+
+
 
 
 
@@ -480,8 +949,8 @@ py-10
 
 
 <div className="
-max-w-7xl
 mx-auto
+max-w-7xl
 px-5
 ">
 
@@ -490,6 +959,7 @@ px-5
 
 
 <CheckoutStepper/>
+
 
 
 
@@ -505,17 +975,18 @@ gap-8
 lg:grid-cols-3
 "
 
-
-
 >
 
 
 
 
 <div className="
-lg:col-span-2
 space-y-6
+lg:col-span-2
 ">
+
+
+
 
 
 <ShippingForm
@@ -530,6 +1001,20 @@ handleChange={handleChange}
 
 
 
+
+<LocationPicker
+
+location={form.location}
+
+setLocation={setLocation}
+
+/>
+
+
+
+
+
+
 <DeliveryOptions
 
 delivery={delivery}
@@ -537,6 +1022,8 @@ delivery={delivery}
 setDelivery={setDelivery}
 
 />
+
+
 
 
 
@@ -566,6 +1053,8 @@ handleChange
 
 
 
+
+
 <CouponBox
 
 coupon={coupon}
@@ -586,7 +1075,11 @@ couponError={couponError}
 
 
 
+
+
 <SecureCheckout/>
+
+
 
 
 
@@ -595,22 +1088,28 @@ couponError={couponError}
 {
 error &&
 
-<p className="
+<div className="
 rounded-xl
-bg-red-50
+bg-red-100
 p-4
 text-red-600
 ">
 
 {error}
 
-</p>
+</div>
 
 }
 
 
 
+
+
+
 </div>
+
+
+
 
 
 
@@ -640,6 +1139,7 @@ loading={loading}
 />
 
 
+
 </div>
 
 
@@ -654,7 +1154,6 @@ loading={loading}
 
 
 </div>
-
 
 </main>
 
