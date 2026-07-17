@@ -10,19 +10,25 @@
     "start": "next start"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@react-google-maps/api": "^2.20.8",
     "@tailwindcss/postcss": "^4.3.2",
     "axios": "^1.18.1",
-    "lucide-react": "^1.23.0",
+    "framer-motion": "^12.42.2",
+    "js-cookie": "^3.0.8",
+    "lucide-react": "^1.24.0",
     "next": "^16.2.10",
     "postcss": "^8.5.16",
     "react": "^19.2.7",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.81.0",
+    "react-hot-toast": "^2.6.0",
     "react-icons": "^5.7.0",
     "recharts": "^3.9.2",
     "sonner": "^2.0.7",
-    "tailwindcss": "^4.3.2"
+    "tailwindcss": "^4.3.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

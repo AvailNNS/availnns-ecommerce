@@ -10,36 +10,25 @@ export interface AuthRequest extends Request {
   };
 }
 
-const authMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
+const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: "Unauthorized",
       });
+      return;
     }
 
     const token = authHeader.split(" ")[1];
-
-    const decoded = jwt.verify(
-      token,
-      JWT_SECRET
-    ) as {
-      id: string;
-      role: string;
-    };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };
 
     req.user = decoded;
-
     next();
   } catch (error) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: "Invalid or expired token",
     });

@@ -172,7 +172,6 @@ router.get(
 );
 
 
-
 router.get(
 
   "/",
@@ -182,7 +181,6 @@ router.get(
 );
 
 
-
 router.get(
 
   "/:id",
@@ -190,9 +188,6 @@ router.get(
   getProductById
 
 );
-
-
-
 
 
 export default router;

@@ -3,1501 +3,291 @@ import Product from "../models/Product";
 import { generateSlug } from "../utils/slug";
 import streamifier from "streamifier";
 import cloudinary from "../config/cloudinary";
-
 import {
   addDiscountPercentage,
   addDiscountPercentageToProducts,
 } from "../utils/product";
 
-
-
 // ===============================
 // CREATE PRODUCT
 // ===============================
-
-export const createProduct = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-
-
-    let slug = generateSlug(
-      req.body.name || ""
-    );
-
-
-
-    const existProduct =
-      await Product.findOne({
-        slug,
-      });
-
-
-
-    if(existProduct){
-
+    let slug = generateSlug(req.body.name || "");
+    const existProduct = await Product.findOne({ slug });
+    if (existProduct) {
       slug = `${slug}-${Date.now()}`;
-
     }
 
+    const uploadedFiles = Array.isArray(req.files) ? (req.files as Express.Multer.File[]) : [];
+    const images: { url: string; public_id: string }[] = [];
 
-
-
-
-    const uploadedFiles =
-      Array.isArray(req.files)
-      ? (req.files as Express.Multer.File[])
-      : [];
-
-
-
-
-    const images:{
-      url:string;
-      public_id:string;
-    }[] = [];
-
-
-
-
-
-    for(const file of uploadedFiles){
-
-
-      const result:any =
-      await new Promise(
-        (resolve,reject)=>{
-
-
-          const uploadStream =
-          cloudinary.uploader.upload_stream(
-
-            {
-              folder:"products",
-            },
-
-
-            (error,result)=>{
-
-              if(error){
-
-                reject(error);
-
-              }
-              else{
-
-                resolve(result);
-
-              }
-
-            }
-
-          );
-
-
-
-          streamifier
-          .createReadStream(file.buffer)
-          .pipe(uploadStream);
-
-
-
-        }
-      );
-
-
-
-
-      images.push({
-
-        url:result.secure_url,
-
-        public_id:result.public_id,
-
+    for (const file of uploadedFiles) {
+      const result: any = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "products" },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        streamifier.createReadStream(file.buffer).pipe(uploadStream);
       });
 
-
+      images.push({ url: result.secure_url, public_id: result.public_id });
     }
 
-
-
-
-    const product =
-    await Product.create({
-
+    const product = await Product.create({
       ...req.body,
-
       slug,
-
       images,
-
-
-      isPublished:true,
-
-
-      isFeatured:
-      req.body.isFeatured === "true",
-
-
-      isBestSeller:
-      req.body.isBestSeller === "true",
-
-
+      isPublished: true,
+      isFeatured: req.body.isFeatured === "true",
+      isBestSeller: req.body.isBestSeller === "true",
     });
-
-
-
-
 
     res.status(201).json({
-
-      success:true,
-
-      message:
-      "Product created successfully",
-
-
-      product:
-      addDiscountPercentage(product),
-
+      success: true,
+      message: "Product created successfully",
+      product: addDiscountPercentage(product),
     });
-
-
-
-
-
-  }catch(error:any){
-
-
-    console.log(
-      "CREATE PRODUCT ERROR:",
-      error
-    );
-
-
-
+  } catch (error: any) {
+    console.log("CREATE PRODUCT ERROR:", error);
     res.status(500).json({
-
-      success:false,
-
-      message:
-      "Product create failed",
-
-      error:error.message,
-
+      success: false,
+      message: "Product create failed",
+      error: error.message,
     });
-
-
   }
-
 };
-
-
-
-
-
 
 // ===============================
 // GET ALL PRODUCTS
 // ===============================
-
-export const getProducts = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-
-
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
   try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
+    const { search, category, minPrice, maxPrice, sort } = req.query;
+    const filter: any = {};
 
+    if (search) filter.name = { $regex: search, $options: "i" };
+    if (category) filter.category = category;
 
-    const page =
-    Number(req.query.page) || 1;
-
-
-    const limit =
-    Number(req.query.limit) || 10;
-
-
-
-    const skip =
-    (page - 1) * limit;
-
-
-
-
-    const {
-      search,
-      category,
-      minPrice,
-      maxPrice,
-      sort,
-
-    } = req.query;
-
-
-
-
-    const filter:any = {};
-
-
-
-
-    if(search){
-
-      filter.name = {
-
-        $regex:search,
-
-        $options:"i",
-
-      };
-
-    }
-
-
-
-
-    if(category){
-
-      filter.category = category;
-
-    }
-
-
-
-
-
-    if(minPrice || maxPrice){
-
-
+    if (minPrice || maxPrice) {
       filter.price = {};
-
-
-
-      if(minPrice){
-
-        filter.price.$gte =
-        Number(minPrice);
-
-      }
-
-
-
-      if(maxPrice){
-
-        filter.price.$lte =
-        Number(maxPrice);
-
-      }
-
-
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-
-
-
-
-
-    let sortOption:any = {
-
-      createdAt:-1,
-
-    };
-
-
-
-
-
-    if(sort==="price_asc"){
-
-      sortOption = {
-
-        price:1,
-
-      };
-
-    }
-
-
-
-
-    if(sort==="price_desc"){
-
-      sortOption = {
-
-        price:-1,
-
-      };
-
-    }
-
-
-
-
-
-    if(sort==="name_asc"){
-
-      sortOption = {
-
-        name:1,
-
-      };
-
-    }
-
-
-
-
-
-    if(sort==="name_desc"){
-
-      sortOption = {
-
-        name:-1,
-
-      };
-
-    }
-
-
-
-
-
-
-
-    const products =
-    await Product.find(filter)
-
-    .populate("category")
-
-    .skip(skip)
-
-    .limit(limit)
-
-    .sort(sortOption);
-
-
-
-
-
-
-
-    const total =
-    await Product.countDocuments(filter);
-
-
-
-
-
-
+    let sortOption: any = { createdAt: -1 };
+    if (sort === "price_asc") sortOption = { price: 1 };
+    if (sort === "price_desc") sortOption = { price: -1 };
+    if (sort === "name_asc") sortOption = { name: 1 };
+    if (sort === "name_desc") sortOption = { name: -1 };
+
+    const products = await Product.find(filter)
+      .populate("category")
+      .skip(skip)
+      .limit(limit)
+      .sort(sortOption);
+
+    const total = await Product.countDocuments(filter);
 
     res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-
-      pagination:{
-
-
+      success: true,
+      products: addDiscountPercentageToProducts(products),
+      pagination: {
         total,
-
         page,
-
-
-        totalPages:
-        Math.ceil(total / limit),
-
-
-      }
-
-
+        totalPages: Math.ceil(total / limit),
+      },
     });
-
-
-
-
-
-  }catch(error:any){
-
-
+  } catch (error: any) {
     res.status(500).json({
-
-      success:false,
-
-      message:
-      "Failed to get products",
-
-      error:error.message,
-
+      success: false,
+      message: "Failed to get products",
+      error: error.message,
     });
-
-
   }
-
-
 };
 
 // ===============================
 // GET PRODUCT BY ID
 // ===============================
-
-export const getProductById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-
+export const getProductById = async (req: Request, res: Response): Promise<void> => {
   try {
-
-
-    const product =
-    await Product.findById(
-      req.params.id
-    )
-    .populate("category");
-
-
-
-
-    if(!product){
-
-      res.status(404).json({
-
-        success:false,
-
-        message:"Product not found",
-
-      });
-
+    const product = await Product.findById(req.params.id).populate("category");
+    if (!product) {
+      res.status(404).json({ success: false, message: "Product not found" });
       return;
-
     }
-
-
-
-
-
     res.status(200).json({
-
-      success:true,
-
-      product:
-      addDiscountPercentage(product),
-
+      success: true,
+      product: addDiscountPercentage(product),
     });
-
-
-
-
-
-  }catch(error:any){
-
-
+  } catch (error: any) {
     res.status(500).json({
-
-      success:false,
-
-      message:
-      "Failed to fetch product",
-
-      error:error.message,
-
+      success: false,
+      message: "Failed to fetch product",
+      error: error.message,
     });
-
-
   }
-
 };
-
-
-
-
-
-
 
 // ===============================
 // UPDATE PRODUCT
 // ===============================
-
-export const updateProduct = async(
-  req: Request,
-  res: Response
-): Promise<void> => {
-
-
+export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-
-
-
-    const product =
-    await Product.findById(
-      req.params.id
-    );
-
-
-
-
-
-    if(!product){
-
-
-      res.status(404).json({
-
-        success:false,
-
-        message:"Product not found",
-
-      });
-
-
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      res.status(404).json({ success: false, message: "Product not found" });
       return;
-
     }
 
+    const data: any = { ...req.body };
 
-
-
-
-
-    const data:any = {
-
-      ...req.body,
-
-    };
-
-
-
-
-
-
-
-    // OLD IMAGES
-
-    if(req.body.oldImages){
-
-      data.images =
-      JSON.parse(
-        req.body.oldImages
-      );
-
+    if (req.body.oldImages) {
+      data.images = JSON.parse(req.body.oldImages);
     }
 
-
-
-
-
-
-
-    // NEW IMAGE UPLOAD
-
-
-    const files =
-    req.files as Express.Multer.File[];
-
-
-
-
-    if(files && files.length){
-
-
-
-      const newImages:any[] = [];
-
-
-
-
-      for(const file of files){
-
-
-
-        const result:any =
-        await new Promise(
-
-          (resolve,reject)=>{
-
-
-            const uploadStream =
-            cloudinary.uploader.upload_stream(
-
-              {
-                folder:"products",
-              },
-
-
-              (error,result)=>{
-
-
-                if(error){
-
-                  reject(error);
-
-                }
-                else{
-
-                  resolve(result);
-
-                }
-
-              }
-
-            );
-
-
-
-
-            streamifier
-            .createReadStream(
-              file.buffer
-            )
-            .pipe(uploadStream);
-
-
-
-          }
-
-        );
-
-
-
-
-
-
-        newImages.push({
-
-          url:
-          result.secure_url,
-
-
-          public_id:
-          result.public_id,
-
-
+    const files = req.files as Express.Multer.File[];
+    if (files && files.length) {
+      const newImages: any[] = [];
+      for (const file of files) {
+        const result: any = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: "products" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          streamifier.createReadStream(file.buffer).pipe(uploadStream);
         });
-
-
+        newImages.push({ url: result.secure_url, public_id: result.public_id });
       }
-
-
-
-
-
-
-      data.images = [
-
-        ...(data.images || []),
-
-        ...newImages,
-
-      ];
-
+      data.images = [...(data.images || []), ...newImages];
     }
 
+    if (req.body.price) data.price = Number(req.body.price);
+    if (req.body.discountPrice) data.discountPrice = Number(req.body.discountPrice);
+    if (req.body.stock) data.stock = Number(req.body.stock);
+    if (req.body.isFeatured !== undefined) data.isFeatured = req.body.isFeatured === "true";
+    if (req.body.isBestSeller !== undefined) data.isBestSeller = req.body.isBestSeller === "true";
 
-
-
-
-
-
-
-    // NUMBER CONVERSION
-
-
-    if(req.body.price){
-
-      data.price =
-      Number(req.body.price);
-
-    }
-
-
-
-
-
-    if(req.body.discountPrice){
-
-      data.discountPrice =
-      Number(req.body.discountPrice);
-
-    }
-
-
-
-
-
-    if(req.body.stock){
-
-      data.stock =
-      Number(req.body.stock);
-
-    }
-
-
-
-
-
-
-
-
-    // BOOLEAN
-
-
-    if(req.body.isFeatured !== undefined){
-
-      data.isFeatured =
-      req.body.isFeatured === "true";
-
-    }
-
-
-
-
-    if(req.body.isBestSeller !== undefined){
-
-      data.isBestSeller =
-      req.body.isBestSeller === "true";
-
-    }
-
-
-
-
-
-
-
-    const updatedProduct =
-
-    await Product.findByIdAndUpdate(
-
-      req.params.id,
-
-      data,
-
-      {
-        new:true,
-      }
-
-    );
-
-
-
-
-
-
+    const updatedProduct = await Product.findByIdAndUpdate(req.params.id, data, { new: true });
 
     res.status(200).json({
-
-      success:true,
-
-
-      message:
-      "Product updated successfully",
-
-
-
-      product:
-      addDiscountPercentage(
-        updatedProduct
-      ),
-
-
+      success: true,
+      message: "Product updated successfully",
+      product: addDiscountPercentage(updatedProduct),
     });
-
-
-
-
-
-  }catch(error:any){
-
-
-    console.log(
-      "UPDATE PRODUCT ERROR:",
-      error
-    );
-
-
-
+  } catch (error: any) {
+    console.log("UPDATE PRODUCT ERROR:", error);
     res.status(500).json({
-
-      success:false,
-
-      message:
-      "Update failed",
-
-      error:error.message,
-
+      success: false,
+      message: "Update failed",
+      error: error.message,
     });
-
-
   }
-
-
 };
-
-
-
-
-
-
-
 
 // ===============================
 // DELETE PRODUCT
 // ===============================
-
-export const deleteProduct = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const product =
-    await Product.findByIdAndDelete(
-      req.params.id
-    );
-
-
-
-
-    if(!product){
-
-
-      res.status(404).json({
-
-        success:false,
-
-        message:
-        "Product not found",
-
-      });
-
-
+export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) {
+      res.status(404).json({ success: false, message: "Product not found" });
       return;
-
     }
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-      message:
-      "Product deleted",
-
-    });
-
-
-
-
-  }catch(error:any){
-
-
+    res.status(200).json({ success: true, message: "Product deleted" });
+  } catch (error: any) {
     res.status(500).json({
-
-      success:false,
-
-      message:
-      "Delete failed",
-
-      error:error.message,
-
+      success: false,
+      message: "Delete failed",
+      error: error.message,
     });
-
-
   }
-
-
 };
 
 // ===============================
-// FEATURED PRODUCTS
+// ADDITIONAL PRODUCT GETTERS (FEATURED, BEST SELLER, NEW ARRIVAL, RELATED, STOCK, LOW STOCK)
 // ===============================
-
-export const getFeaturedProducts = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const products =
-    await Product.find({
-
-      isFeatured:true,
-
-      isPublished:true,
-
-    })
-
-    .populate("category")
-
-    .limit(10)
-
-    .sort({
-
-      createdAt:-1,
-
-    });
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-    });
-
-
-
-
-
-  }catch(error:any){
-
-
-    res.status(500).json({
-
-      success:false,
-
-      message:
-      "Failed to get featured products",
-
-      error:error.message,
-
-    });
-
-
+export const getFeaturedProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find({ isFeatured: true, isPublished: true })
+      .populate("category").limit(10).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, products: addDiscountPercentageToProducts(products) });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Failed to get featured products", error: error.message });
   }
-
-
 };
 
-
-
-
-
-
-
-// ===============================
-// BEST SELLER PRODUCTS
-// ===============================
-
-export const getBestSellerProducts = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const products =
-    await Product.find({
-
-      isBestSeller:true,
-
-      isPublished:true,
-
-    })
-
-    .populate("category")
-
-    .limit(10)
-
-    .sort({
-
-      createdAt:-1,
-
-    });
-
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-    });
-
-
-
-
-
-  }catch(error:any){
-
-
-    res.status(500).json({
-
-      success:false,
-
-      message:
-      "Failed to fetch best seller products",
-
-      error:error.message,
-
-    });
-
-
+export const getBestSellerProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find({ isBestSeller: true, isPublished: true })
+      .populate("category").limit(10).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, products: addDiscountPercentageToProducts(products) });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Failed to fetch best seller products", error: error.message });
   }
-
-
 };
 
-
-
-
-
-
-
-
-// ===============================
-// NEW ARRIVAL PRODUCTS
-// ===============================
-
-export const getNewArrivalProducts = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const days = 60;
-
-
-    const date =
-    new Date();
-
-
-
-    date.setDate(
-      date.getDate() - days
-    );
-
-
-
-
-
-
-    const products =
-    await Product.find({
-
-      isPublished:true,
-
-
-      createdAt:{
-
-        $gte:date,
-
-      },
-
-
-    })
-
-
-    .populate("category")
-
-    .sort({
-
-      createdAt:-1,
-
-    })
-
-    .limit(8);
-
-
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-    });
-
-
-
-
-
-
-  }catch(error:any){
-
-
-    console.log(
-      "NEW ARRIVAL ERROR:",
-      error
-    );
-
-
-
-    res.status(500).json({
-
-      success:false,
-
-      message:
-      "Failed to fetch new arrivals",
-
-      error:error.message,
-
-    });
-
-
+export const getNewArrivalProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const date = new Date();
+    date.setDate(date.getDate() - 60);
+    const products = await Product.find({ isPublished: true, createdAt: { $gte: date } })
+      .populate("category").sort({ createdAt: -1 }).limit(8);
+    res.status(200).json({ success: true, products: addDiscountPercentageToProducts(products) });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Failed to fetch new arrivals", error: error.message });
   }
-
-
 };
 
-// ===============================
-// RELATED PRODUCTS
-// ===============================
-
-export const getRelatedProducts = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const product =
-    await Product.findById(
-      req.params.id
-    );
-
-
-
-
-    if(!product){
-
-
-      res.status(404).json({
-
-        success:false,
-
-        message:
-        "Product not found",
-
-      });
-
-
+export const getRelatedProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      res.status(404).json({ success: false, message: "Product not found" });
       return;
-
     }
-
-
-
-
-
-
-    const products =
-    await Product.find({
-
-      category:
-      product.category,
-
-
-      _id:{
-
-        $ne:req.params.id,
-
-      },
-
-
-      isPublished:true,
-
-
-    })
-
-
-    .populate("category")
-
-
-    .limit(6)
-
-
-    .sort({
-
-      createdAt:-1,
-
-    });
-
-
-
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-    });
-
-
-
-
-
-  }catch(error:any){
-
-
-    res.status(500).json({
-
-      success:false,
-
-
-      message:
-      "Failed to get related products",
-
-
-      error:error.message,
-
-    });
-
-
+    const products = await Product.find({ category: product.category, _id: { $ne: req.params.id }, isPublished: true })
+      .populate("category").limit(6).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, products: addDiscountPercentageToProducts(products) });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Failed to get related products", error: error.message });
   }
-
-
 };
 
-
-
-
-
-
-
-
-// ===============================
-// UPDATE STOCK (ADMIN)
-// ===============================
-
-export const updateStock = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const {
-      stock
-    } = req.body;
-
-
-
-
-
-    const product =
-    await Product.findByIdAndUpdate(
-
-
-      req.params.id,
-
-
-      {
-
-        stock:Number(stock),
-
-      },
-
-
-      {
-
-        new:true,
-
-      }
-
-
-    );
-
-
-
-
-
-
-    if(!product){
-
-
-      res.status(404).json({
-
-        success:false,
-
-        message:
-        "Product not found",
-
-      });
-
-
+export const updateStock = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, { stock: Number(req.body.stock) }, { new: true });
+    if (!product) {
+      res.status(404).json({ success: false, message: "Product not found" });
       return;
-
     }
-
-
-
-
-
-
     res.status(200).json({
-
-      success:true,
-
-
-      message:
-      "Stock updated successfully",
-
-
-
-      product:
-      addDiscountPercentage(product),
-
-
+      success: true,
+      message: "Stock updated successfully",
+      product: addDiscountPercentage(product),
     });
-
-
-
-
-
-
-  }catch(error:any){
-
-
-
-    res.status(500).json({
-
-      success:false,
-
-
-      message:
-      "Stock update failed",
-
-
-      error:error.message,
-
-    });
-
-
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Stock update failed", error: error.message });
   }
-
-
 };
 
-
-
-
-
-
-
-
-
-// ===============================
-// LOW STOCK PRODUCTS
-// ===============================
-
-export const getLowStockProducts = async(
-  req:Request,
-  res:Response
-):Promise<void>=>{
-
-
-  try{
-
-
-    const products =
-    await Product.find({
-
-      stock:{
-
-        $lte:5,
-
-      },
-
-
-    })
-
-    .populate("category");
-
-
-
-
-
-
-
-    res.status(200).json({
-
-      success:true,
-
-
-      products:
-      addDiscountPercentageToProducts(products),
-
-
-    });
-
-
-
-
-
-
-  }catch(error:any){
-
-
-    res.status(500).json({
-
-      success:false,
-
-
-      message:
-      "Failed to get low stock products",
-
-
-      error:error.message,
-
-    });
-
-
+export const getLowStockProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await Product.find({ stock: { $lte: 5 } }).populate("category");
+    res.status(200).json({ success: true, products: addDiscountPercentageToProducts(products) });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: "Failed to get low stock products", error: error.message });
   }
-
-
 };

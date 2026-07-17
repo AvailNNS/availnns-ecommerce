@@ -2,9 +2,7 @@ import Product from "../models/Product";
 import { IProduct } from "../types/product.types";
 import { generateSlug } from "../utils/slug";
 
-export const createProduct = async (
-  productData: IProduct
-) => {
+export const createProduct = async (productData: IProduct) => {
   const slug = generateSlug(productData.name);
 
   const exists = await Product.findOne({ slug });
@@ -74,9 +72,7 @@ export const getProducts = async (query: any) => {
   };
 };
 
-export const getProductById = async (
-  id: string
-) => {
+export const getProductById = async (id: string) => {
   return await Product.findById(id).populate("category");
 };
 
@@ -88,18 +84,12 @@ export const updateProduct = async (
     productData.slug = generateSlug(productData.name);
   }
 
-  return await Product.findByIdAndUpdate(
-    id,
-    productData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).populate("category");
+  return await Product.findByIdAndUpdate(id, productData, {
+    new: true,
+    runValidators: true,
+  }).populate("category");
 };
 
-export const deleteProduct = async (
-  id: string
-) => {
+export const deleteProduct = async (id: string) => {
   return await Product.findByIdAndDelete(id);
 };

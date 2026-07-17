@@ -5,10 +5,10 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail";
 
-export const register = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+// REGISTER USER
+// ===============================
+export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await registerUser(req.body);
 
@@ -25,45 +25,30 @@ export const register = async (
   }
 };
 
-export const login = async (
-
-  req: Request,
-
-  res: Response
-
-): Promise<void> => {
-
+// ===============================
+// LOGIN USER
+// ===============================
+export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-
     const data = await loginUser(req.body);
 
     res.status(200).json({
-
       success: true,
-
       message: "Login successful",
-
       data,
-
     });
-
   } catch (error: any) {
-
     res.status(400).json({
-
       success: false,
-
       message: error.message,
-
     });
-
   }
 };
 
-export const forgotPassword = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+// FORGOT PASSWORD
+// ===============================
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email } = req.body;
 
@@ -84,6 +69,7 @@ export const forgotPassword = async (
       .update(resetToken)
       .digest("hex");
 
+    // Token expires in 15 minutes
     user.resetPasswordExpire = new Date(Date.now() + 15 * 60 * 1000);
 
     await user.save();
@@ -94,7 +80,6 @@ export const forgotPassword = async (
 You requested a password reset.
 
 Click the link below:
-
 ${resetUrl}
 
 This link will expire in 15 minutes.
@@ -119,10 +104,10 @@ This link will expire in 15 minutes.
   }
 };
 
-export const resetPassword = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+// RESET PASSWORD
+// ===============================
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
     const hashedToken = crypto
       .createHash("sha256")

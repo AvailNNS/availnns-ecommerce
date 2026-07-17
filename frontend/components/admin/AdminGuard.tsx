@@ -1,199 +1,200 @@
 "use client";
 
-
 import {
- useEffect,
- useState
+  useEffect,
+  useState,
 } from "react";
 
-
 import {
- useRouter
+  useRouter,
+  usePathname,
 } from "next/navigation";
-
 
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
 
-
-
 export default function AdminGuard({
-children
-}:{
-children:React.ReactNode;
-}){
+  children,
+}: {
+  children: React.ReactNode;
+}) {
 
+  const router = useRouter();
 
-const router = useRouter();
+  const pathname =
+    usePathname();
 
+  const [checking, setChecking] =
+    useState(true);
 
-const [checking,setChecking]=useState(true);
+  useEffect(() => {
 
+    const check = () => {
 
+      try {
 
-useEffect(()=>{
+        const user =
+          localStorage.getItem("user");
 
+        const token =
+          localStorage.getItem("token");
 
-const check=()=>{
+        if (!user || !token) {
 
+          setChecking(false);
 
-const user =
-localStorage.getItem("user");
+          if (
+            pathname !==
+            "/admin/login"
+          ) {
 
+            router.replace(
+              "/admin/login"
+            );
 
-const token =
-localStorage.getItem("token");
+          }
 
+          return;
 
+        }
 
-if(!user || !token){
+        const data =
+          JSON.parse(user);
 
-router.replace("/admin/login");
-return;
+        if (
+          data.role !==
+          "admin"
+        ) {
 
-}
+          localStorage.removeItem(
+            "user"
+          );
 
+          localStorage.removeItem(
+            "token"
+          );
 
+          setChecking(false);
 
-try{
+          router.replace(
+            "/admin/login"
+          );
 
+          return;
 
-const data =
-JSON.parse(user);
+        }
 
+        setChecking(false);
 
+      } catch {
 
-if(data.role !== "admin"){
+        localStorage.removeItem(
+          "user"
+        );
 
-router.replace("/admin/login");
-return;
+        localStorage.removeItem(
+          "token"
+        );
 
-}
+        setChecking(false);
 
+        router.replace(
+          "/admin/login"
+        );
 
+      }
 
-setChecking(false);
+    };
 
+    check();
 
+  }, [
+    router,
+    pathname,
+  ]);
 
-}catch{
+  if (checking) {
 
-
-localStorage.removeItem("user");
-localStorage.removeItem("token");
-
-router.replace("/admin/login");
-
-
-}
-
-
-};
-
-
-
-check();
-
-
-},[router]);
-
-
-
-
-
-if(checking){
-
-
-return (
-
-<div
-
-className="
-min-h-screen
-flex
-items-center
-justify-center
-bg-zinc-100
-"
-
->
-
-<div
-
-className="
-animate-pulse
-text-gray-500
-"
-
->
-
-Checking Admin Access...
-
-</div>
-
-
-</div>
-
-);
-
-
-}
-
-
-
-
-
-
-return (
-
-<div
-
-className="
-min-h-screen
-bg-zinc-100
-flex
-"
-
->
-
-
-<AdminSidebar/>
-
-
-<div
-
-className="
-flex-1
-lg:ml-72
-"
-
->
-
-
-<AdminHeader/>
-
-
-<main
-
-className="
-p-4
-sm:p-6
-lg:p-8
-"
-
->
-
-{children}
-
-</main>
-
-
-</div>
-
-
-</div>
-
-);
-
+    return (
+
+      <div
+        className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        bg-zinc-100
+        "
+      >
+
+        <div
+          className="
+          flex
+          items-center
+          gap-3
+          text-gray-600
+          "
+        >
+
+          <div
+            className="
+            h-6
+            w-6
+            border-2
+            border-black
+            border-t-transparent
+            rounded-full
+            animate-spin
+            "
+          />
+
+          <span>
+            Checking Admin Access...
+          </span>
+
+        </div>
+
+      </div>
+
+    );
+
+  }
+
+  return (
+
+    <div
+      className="
+      min-h-screen
+      bg-zinc-100
+      flex
+      "
+    >
+
+      <AdminSidebar />
+
+      <div
+        className="
+        flex-1
+        lg:ml-72
+        "
+      >
+
+        <AdminHeader />
+
+        <main
+          className="
+          p-4
+          sm:p-6
+          lg:p-8
+          "
+        >
+          {children}
+        </main>
+
+      </div>
+
+    </div>
+
+  );
 
 }

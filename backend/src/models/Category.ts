@@ -7,30 +7,25 @@ const categorySchema = new Schema(
       required: true,
       trim: true,
     },
-
     slug: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
     },
-
     description: {
       type: String,
       default: "",
     },
-
     image: {
       type: String,
       default: "",
     },
-
     parent: {
       type: Schema.Types.ObjectId,
       ref: "Category",
       default: null,
     },
-
     isActive: {
       type: Boolean,
       default: true,

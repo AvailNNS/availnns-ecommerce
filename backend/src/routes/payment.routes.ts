@@ -13,8 +13,6 @@ import authMiddleware from "../middleware/auth.middleware";
 
 const router = Router();
 
-
-
 // ===============================
 // INITIATE SSL PAYMENT
 // ===============================
@@ -25,8 +23,6 @@ router.post(
   initiatePayment
 );
 
-
-
 // ===============================
 // PAYMENT SUCCESS CALLBACK
 // ===============================
@@ -35,8 +31,6 @@ router.post(
   "/success",
   paymentSuccess
 );
-
-
 
 // ===============================
 // PAYMENT FAILED CALLBACK
@@ -47,8 +41,6 @@ router.post(
   paymentFail
 );
 
-
-
 // ===============================
 // PAYMENT CANCEL CALLBACK
 // ===============================
@@ -57,7 +49,5 @@ router.post(
   "/cancel",
   paymentCancel
 );
-
-
 
 export default router;

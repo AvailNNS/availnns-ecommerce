@@ -10,17 +10,11 @@ import {
 } from "../controllers/admin.dashboard.controller";
 
 
-
 import authMiddleware from "../middleware/auth.middleware";
 
 import authorize from "../middleware/role.middleware";
 
-
-
 const router = Router();
-
-
-
 
 // ===============================
 // DASHBOARD STATS
@@ -39,11 +33,6 @@ getDashboardStats
 );
 
 
-
-
-
-
-
 // ===============================
 // RECENT ORDERS
 // ===============================
@@ -60,12 +49,6 @@ getRecentOrders
 
 );
 
-
-
-
-
-
-
 // ===============================
 // ORDER STATUS CHART
 // ===============================
@@ -81,11 +64,6 @@ authorize("admin"),
 getOrderStatusStats
 
 );
-
-
-
-
-
 
 
 // ===============================
@@ -105,11 +83,6 @@ getTopProducts
 );
 
 
-
-
-
-
-
 // ===============================
 // MONTHLY SALES CHART
 // ===============================
@@ -125,10 +98,5 @@ authorize("admin"),
 getMonthlySales
 
 );
-
-
-
-
-
 
 export default router;

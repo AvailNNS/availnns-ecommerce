@@ -29,10 +29,7 @@ export const getCategories = async () => {
   return categories;
 };
 
-export const updateCategory = async (
-  id: string,
-  data: any
-) => {
+export const updateCategory = async (id: string, data: any) => {
   return await Category.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
@@ -44,15 +41,11 @@ export const deleteCategory = async (id: string) => {
 };
 
 export const getCategoryTree = async () => {
-  const categories = await Category.find()
-    .lean();
+  const categories = await Category.find().lean();
 
   const buildTree = (parentId: any = null): any[] => {
     return categories
-      .filter(
-        (category: any) =>
-          String(category.parent) === String(parentId)
-      )
+      .filter((category: any) => String(category.parent) === String(parentId))
       .map((category: any) => ({
         ...category,
         children: buildTree(category._id),
@@ -61,17 +54,12 @@ export const getCategoryTree = async () => {
 
   return buildTree(null);
 };
-export const getCategoryBySlug = async (
-  slug: string
-) => {
 
+export const getCategoryBySlug = async (slug: string) => {
   const category = await Category.findOne({
     slug,
     isActive: true,
-  })
-  .populate("parent", "name slug");
-
+  }).populate("parent", "name slug");
 
   return category;
-
 };

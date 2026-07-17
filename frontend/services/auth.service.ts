@@ -1,39 +1,56 @@
 import api from "./api";
 
+// =========================
+// LOGIN
+// =========================
 
 export const loginUser = async (
-  email:string,
-  password:string
-)=>{
+  data: {
+    email: string;
+    password: string;
+  }
+) => {
 
   const res = await api.post(
     "/auth/login",
-    {
-      email,
-      password,
-    }
+    data
   );
-
 
   return res.data;
 
 };
 
+// =========================
+// REGISTER
+// =========================
 
+export const registerUser = async (
+  data: {
+    name: string;
+    email: string;
+    password: string;
+  }
+) => {
 
+  const res = await api.post(
+    "/auth/register",
+    data
+  );
 
-export const registerUser = async(
-  data:any
-)=>{
+  return res.data;
 
+};
 
- const res = await api.post(
-  "/auth/register",
-  data
- );
+// =========================
+// GET CURRENT USER
+// =========================
 
+export const getMe = async () => {
 
- return res.data;
+  const res = await api.get(
+    "/auth/me"
+  );
 
+  return res.data;
 
 };

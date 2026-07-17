@@ -26,8 +26,6 @@ import couponRoutes from "./coupon.routes";
 
 const router = Router();
 
-
-
 // ===============================
 // AUTH
 // ===============================
@@ -36,8 +34,6 @@ router.use(
   "/auth",
   authRoutes
 );
-
-
 
 // ===============================
 // USERS
@@ -48,8 +44,6 @@ router.use(
   userRoutes
 );
 
-
-
 // ===============================
 // ADMIN
 // ===============================
@@ -58,8 +52,6 @@ router.use(
   "/admin",
   adminRoutes
 );
-
-
 
 // ===============================
 // CATEGORY
@@ -70,13 +62,10 @@ router.use(
   categoryRoutes
 );
 
-
 router.use(
   "/categories",
   categoryRoutes
 );
-
-
 
 // ===============================
 // PRODUCTS
@@ -92,8 +81,6 @@ router.use(
   "/products",
   productRoutes
 );
-
-
 
 // ===============================
 // CUSTOMER
@@ -116,8 +103,6 @@ router.use(
   cartRoutes
 );
 
-
-
 // ===============================
 // ORDERS
 // ===============================
@@ -126,8 +111,6 @@ router.use(
   "/orders",
   orderRoutes
 );
-
-
 
 // ===============================
 // COUPON
@@ -138,8 +121,6 @@ router.use(
   couponRoutes
 );
 
-
-
 // ===============================
 // PAYMENT
 // ===============================
@@ -148,8 +129,6 @@ router.use(
   "/payments",
   paymentRoutes
 );
-
-
 
 // ===============================
 // ADMIN DASHBOARD
@@ -160,8 +139,6 @@ router.use(
   adminDashboardRoutes
 );
 
-
-
 // ===============================
 // ADMIN ORDERS
 // ===============================
@@ -170,8 +147,6 @@ router.use(
   "/admin/orders",
   adminOrderRoutes
 );
-
-
 
 // ===============================
 // API CHECK

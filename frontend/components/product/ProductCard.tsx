@@ -1,7 +1,12 @@
 "use client";
-import { useState } from "react";
+
+import {
+  useState
+} from "react";
+
 import Image from "next/image";
 import Link from "next/link";
+
 
 import {
   Heart,
@@ -13,20 +18,31 @@ import {
 } from "lucide-react";
 
 
-import { Product } from "@/types/product";
+import {
+  Product
+} from "@/types/product";
+
 
 import useCart from "@/hooks/useCart";
+
 
 import {
   useWishlist
 } from "@/context/WishlistContext";
 
 
+import {
+  useCurrency
+} from "@/context/CurrencyContext";
+
+
+
+
 
 export default function ProductCard({
-  product,
+ product,
 }:{
-  product:Product;
+ product:Product;
 }){
 
 
@@ -39,11 +55,23 @@ const {
 
 
 
+
+
 const {
  addToWishlist,
  removeFromWishlist,
  isInWishlist,
 }=useWishlist();
+
+
+
+
+
+const {
+ formatPrice
+}=useCurrency();
+
+
 
 
 
@@ -62,6 +90,7 @@ isInWishlist(product._id);
 
 
 
+
 const firstImage =
 product.images?.[0]?.url ||
 "/placeholder.png";
@@ -71,6 +100,8 @@ product.images?.[0]?.url ||
 const secondImage =
 product.images?.[1]?.url ||
 firstImage;
+
+
 
 
 
@@ -98,6 +129,7 @@ cartItem?.quantity || 0;
 
 
 
+
 const discount =
 product.discountPrice &&
 product.discountPrice < product.price
@@ -107,8 +139,8 @@ product.discountPrice < product.price
 Math.round(
 
 (
-(product.price - product.discountPrice)
-/ product.price
+(product.price-product.discountPrice)
+/product.price
 
 )*100
 
@@ -131,7 +163,6 @@ if(quantity >= product.stock)
 return;
 
 
-
 await addItem(
 product._id,
 1
@@ -139,6 +170,7 @@ product._id,
 
 
 };
+
 
 
 
@@ -175,9 +207,7 @@ quantity-1
 
 
 
-
 return (
-
 
 <div
 
@@ -195,7 +225,6 @@ hover:shadow-2xl
 "
 
 >
-
 
 
 <div
@@ -218,11 +247,9 @@ setHoverImage(false)
 >
 
 
-
 <Link
 href={`/products/${product._id}`}
 >
-
 
 
 <Image
@@ -254,17 +281,13 @@ group-hover:scale-110
 />
 
 
-
 </Link>
 
 
 
 
-
-
-
 {
-discount > 0 &&
+discount>0 &&
 
 <span
 
@@ -298,7 +321,6 @@ text-white
 {
 product.isBestSeller &&
 
-
 <span
 
 className="
@@ -319,11 +341,7 @@ Best Seller
 
 </span>
 
-
 }
-
-
-
 
 
 
@@ -356,7 +374,6 @@ product.price,
 
 image:firstImage
 
-
 });
 
 
@@ -372,7 +389,6 @@ rounded-full
 bg-white
 p-3
 shadow-lg
-transition
 hover:scale-110
 "
 
@@ -386,7 +402,6 @@ size={20}
 className={
 
 wish
-
 ?
 
 "fill-red-500 text-red-500"
@@ -402,14 +417,7 @@ wish
 
 </button>
 
-
-
-
-
-
-
-
-
+{/* Quick View */}
 
 <button
 
@@ -445,8 +453,7 @@ Quick View
 
 
 
-
-
+{/* Cart Button */}
 
 <div
 
@@ -527,7 +534,9 @@ text-white
 
 
 <button
+
 onClick={decreaseCart}
+
 >
 
 <Minus size={16}/>
@@ -536,15 +545,20 @@ onClick={decreaseCart}
 
 
 
+
 <span
+
 className="
 font-bold
 "
+
 >
 
 {quantity}
 
 </span>
+
+
 
 
 
@@ -567,7 +581,6 @@ onClick={increaseCart}
 </div>
 
 
-
 }
 
 
@@ -575,8 +588,6 @@ onClick={increaseCart}
 
 
 
-
-
 </div>
 
 
@@ -585,6 +596,8 @@ onClick={increaseCart}
 
 
 
+
+{/* Product Info */}
 
 
 <div
@@ -594,7 +607,6 @@ p-5
 "
 
 >
-
 
 
 
@@ -632,8 +644,6 @@ fill="currentColor"
 
 
 
-
-
 <Link
 href={`/products/${product._id}`}
 >
@@ -663,8 +673,6 @@ hover:text-blue-600
 
 
 
-
-
 <p
 
 className="
@@ -673,6 +681,7 @@ text-gray-500
 "
 
 >
+
 
 {
 
@@ -688,6 +697,7 @@ product.category.name
 
 }
 
+
 </p>
 
 
@@ -696,6 +706,8 @@ product.category.name
 
 
 
+
+{/* Currency Updated Price */}
 
 
 <div
@@ -719,12 +731,13 @@ font-bold
 
 >
 
-$
 
 {
 
+formatPrice(
+
 product.discountPrice &&
-product.discountPrice>0
+product.discountPrice > 0
 
 ?
 
@@ -734,9 +747,15 @@ product.discountPrice
 
 product.price
 
+)
+
 }
 
+
 </p>
+
+
+
 
 
 
@@ -745,7 +764,8 @@ product.price
 {
 
 product.discountPrice &&
-product.discountPrice>0 &&
+product.discountPrice > 0 &&
+
 
 
 <p
@@ -758,8 +778,15 @@ line-through
 
 >
 
-$
-{product.price}
+
+{
+
+formatPrice(
+product.price
+)
+
+}
+
 
 </p>
 
@@ -776,11 +803,10 @@ $
 
 
 
-
-
 {
 
-product.stock>0
+product.stock > 0
+
 
 ?
 
@@ -801,7 +827,9 @@ text-green-600
 </p>
 
 
+
 :
+
 
 <p
 
@@ -819,11 +847,13 @@ Out of Stock
 </p>
 
 
+
 }
 
 
 
 </div>
+
 
 
 

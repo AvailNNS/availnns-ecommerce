@@ -9,14 +9,10 @@ import {
   getAdminOrders,
 } from "../controllers/order.controller";
 
-
 import authMiddleware from "../middleware/auth.middleware";
 import authorize from "../middleware/role.middleware";
 
-
 const router = Router();
-
-
 
 // Create Order
 router.post(
@@ -25,16 +21,12 @@ router.post(
   createOrder
 );
 
-
-
 // User Orders
 router.get(
   "/my-orders",
   authMiddleware,
   getMyOrders
 );
-
-
 
 // ==========================
 // ADMIN ORDERS
@@ -48,8 +40,6 @@ router.get(
   getAdminOrders
 );
 
-
-
 // Admin Update Status
 
 router.put(
@@ -59,8 +49,6 @@ router.put(
   updateOrderStatus
 );
 
-
-
 // Cancel Order
 
 router.put(
@@ -68,8 +56,6 @@ router.put(
   authMiddleware,
   cancelOrder
 );
-
-
 
 // Single Order
 // KEEP LAST
@@ -79,7 +65,5 @@ router.get(
   authMiddleware,
   getOrderById
 );
-
-
 
 export default router;

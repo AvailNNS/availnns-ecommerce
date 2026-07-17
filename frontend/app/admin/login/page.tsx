@@ -2,22 +2,39 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/services/api";
 
+import {
+  Loader2,
+  Lock,
+  Mail,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+} from "lucide-react";
+
+import api from "@/services/api";
 
 export default function AdminLoginPage() {
 
   const router = useRouter();
 
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
 
+  const [rememberMe, setRememberMe] =
+    useState(false);
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] =
+    useState("");
 
-
+  const [loading, setLoading] =
+    useState(false);
 
   const handleLogin = async (
     e: React.FormEvent
@@ -25,84 +42,70 @@ export default function AdminLoginPage() {
 
     e.preventDefault();
 
+    setLoading(true);
+    setError("");
 
     try {
 
-      setLoading(true);
-      setError("");
-
-
-
-      const { data } = await api.post(
-        "/auth/login",
-        {
-          email,
-          password,
-        }
-      );
-
-
+      const { data } =
+        await api.post(
+          "/auth/login",
+          formData
+        );
 
       if (!data.success) {
 
         throw new Error(
-          data.message || "Login failed"
+          data.message ||
+          "Login failed"
         );
 
       }
 
+      const user =
+        data.data.user;
 
+      if (
+        user.role !== "admin"
+      ) {
 
-      const user = data.data.user;
-
-
-
-      // Admin role check
-
-      if (user.role !== "admin") {
-
-        setError(
-          "You are not an admin"
+        throw new Error(
+          "Access denied. Admin account required."
         );
 
-        return;
-
       }
-
-
-
-      // Save auth data
 
       localStorage.setItem(
         "token",
         data.data.token
       );
 
-
       localStorage.setItem(
         "user",
         JSON.stringify(user)
       );
 
+      if (rememberMe) {
 
+        localStorage.setItem(
+          "rememberAdmin",
+          "true"
+        );
 
-      // Redirect Admin Dashboard
+      }
 
       router.push("/admin");
 
       router.refresh();
 
-
-
     } catch (err: any) {
 
-
       setError(
-        err.response?.data?.message ||
-        err.message ||
-        "Login failed"
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Invalid credentials"
       );
-
 
     } finally {
 
@@ -112,175 +115,358 @@ export default function AdminLoginPage() {
 
   };
 
-
-
-
   return (
 
-    <div className="
+    <div
+      className="
       min-h-screen
+      bg-gradient-to-br
+      from-slate-50
+      via-white
+      to-slate-100
       flex
       items-center
       justify-center
-      bg-gray-100
       px-4
-    ">
+      "
+    >
 
-
-      <form
-        onSubmit={handleLogin}
+      <div
         className="
-          w-full
-          max-w-md
-          bg-white
-          rounded-2xl
-          shadow-xl
-          p-8
+        w-full
+        max-w-md
+        bg-white
+        rounded-3xl
+        shadow-2xl
+        border
+        border-slate-200
+        p-8
         "
       >
 
+        {/* Header */}
 
-        <h1 className="
-          text-3xl
-          font-bold
-          text-center
-        ">
-          Admin Login
-        </h1>
+        <div className="text-center mb-8">
 
+          <div
+            className="
+            mx-auto
+            w-16
+            h-16
+            rounded-2xl
+            bg-black
+            text-white
+            flex
+            items-center
+            justify-center
+            "
+          >
 
+            <ShieldCheck
+              size={28}
+            />
 
-        <p className="
-          text-center
-          text-gray-500
-          mt-2
-          mb-6
-        ">
-          Login to management panel
-        </p>
+          </div>
 
+          <h1
+            className="
+            mt-5
+            text-3xl
+            font-bold
+            "
+          >
+            AvailNNS Admin
+          </h1>
 
+          <p
+            className="
+            text-slate-500
+            mt-2
+            "
+          >
+            Secure access to the management panel
+          </p>
 
+        </div>
+
+        {/* Error */}
 
         {error && (
 
-          <div className="
-            bg-red-100
-            text-red-600
-            p-3
-            rounded-lg
+          <div
+            className="
             mb-5
+            flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-red-200
+            bg-red-50
+            px-4
+            py-3
             text-sm
-          ">
+            text-red-600
+            "
+          >
 
-            {error}
+            <AlertCircle
+              size={18}
+            />
+
+            <span>
+              {error}
+            </span>
 
           </div>
 
         )}
 
+        {/* Form */}
 
-
-
-
-
-        <input
-
-          type="email"
-
-          placeholder="Admin Email"
-
-          className="
-            w-full
-            border
-            rounded-lg
-            p-3
-            mb-4
-            outline-none
-            focus:border-black
-          "
-
-          value={email}
-
-          onChange={(e)=>
-            setEmail(e.target.value)
+        <form
+          onSubmit={
+            handleLogin
           }
-
-          required
-
-        />
-
-
-
-
-
-
-        <input
-
-          type="password"
-
-          placeholder="Password"
-
           className="
-            w-full
-            border
-            rounded-lg
-            p-3
-            mb-6
-            outline-none
-            focus:border-black
+          space-y-5
           "
-
-          value={password}
-
-          onChange={(e)=>
-            setPassword(e.target.value)
-          }
-
-          required
-
-        />
-
-
-
-
-
-
-
-        <button
-
-          type="submit"
-
-          disabled={loading}
-
-          className="
-            w-full
-            bg-black
-            text-white
-            py-3
-            rounded-lg
-            font-semibold
-            hover:bg-gray-800
-            transition
-            disabled:opacity-50
-          "
-
         >
 
-          {
-            loading
-            ? "Logging in..."
-            : "Admin Login"
-          }
+          {/* Email */}
 
+          <div>
 
-        </button>
+            <label
+              className="
+              text-sm
+              font-medium
+              text-slate-700
+              "
+            >
+              Admin Email
+            </label>
 
+            <div className="relative mt-2">
 
+              <Mail
+                size={18}
+                className="
+                absolute
+                left-3
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+                "
+              />
 
+              <input
+                type="email"
+                required
+                value={
+                  formData.email
+                }
+                onChange={(
+                  e
+                ) =>
+                  setFormData({
+                    ...formData,
+                    email:
+                      e.target
+                        .value,
+                  })
+                }
+                placeholder="admin@example.com"
+                className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                py-3
+                pl-10
+                pr-4
+                outline-none
+                focus:ring-2
+                focus:ring-black
+                "
+              />
 
-      </form>
+            </div>
 
+          </div>
+
+          {/* Password */}
+
+          <div>
+
+            <label
+              className="
+              text-sm
+              font-medium
+              text-slate-700
+              "
+            >
+              Password
+            </label>
+
+            <div className="relative mt-2">
+
+              <Lock
+                size={18}
+                className="
+                absolute
+                left-3
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+                "
+              />
+
+              <input
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                required
+                value={
+                  formData.password
+                }
+                onChange={(
+                  e
+                ) =>
+                  setFormData({
+                    ...formData,
+                    password:
+                      e.target
+                        .value,
+                  })
+                }
+                placeholder="Enter password"
+                className="
+                w-full
+                rounded-xl
+                border
+                border-slate-300
+                py-3
+                pl-10
+                pr-12
+                outline-none
+                focus:ring-2
+                focus:ring-black
+                "
+              />
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowPassword(
+                    !showPassword
+                  )
+                }
+                className="
+                absolute
+                right-3
+                top-1/2
+                -translate-y-1/2
+                text-slate-500
+                "
+              >
+                {showPassword ? (
+                  <EyeOff
+                    size={18}
+                  />
+                ) : (
+                  <Eye
+                    size={18}
+                  />
+                )}
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* Remember */}
+
+          <label
+            className="
+            flex
+            items-center
+            gap-2
+            text-sm
+            text-slate-600
+            "
+          >
+
+            <input
+              type="checkbox"
+              checked={
+                rememberMe
+              }
+              onChange={(e) =>
+                setRememberMe(
+                  e.target
+                    .checked
+                )
+              }
+            />
+
+            Remember me
+
+          </label>
+
+          {/* Submit */}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="
+            w-full
+            rounded-xl
+            bg-black
+            py-3
+            font-semibold
+            text-white
+            transition
+            hover:bg-slate-800
+            disabled:opacity-70
+            "
+          >
+
+            {loading ? (
+
+              <span
+                className="
+                flex
+                items-center
+                justify-center
+                gap-2
+                "
+              >
+
+                <Loader2
+                  size={18}
+                  className="
+                  animate-spin
+                  "
+                />
+
+                Authenticating...
+
+              </span>
+
+            ) : (
+
+              "Login to Dashboard"
+
+            )}
+
+          </button>
+
+        </form>
+
+      </div>
 
     </div>
 

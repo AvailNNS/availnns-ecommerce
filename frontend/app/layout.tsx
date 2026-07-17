@@ -7,6 +7,10 @@ import AppProvider from "@/components/providers/AppProvider";
 
 import MainLayout from "@/components/layout/MainLayout";
 
+import {
+  CurrencyProvider
+} from "@/context/CurrencyContext";
+
 
 
 export const metadata: Metadata = {
@@ -45,11 +49,17 @@ return (
 <AppProvider>
 
 
+<CurrencyProvider>
+
+
 <MainLayout>
 
 {children}
 
 </MainLayout>
+
+
+</CurrencyProvider>
 
 
 </AppProvider>

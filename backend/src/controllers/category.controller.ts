@@ -5,11 +5,10 @@ interface CategoryParams {
   id: string;
 }
 
+// ===============================
 // CREATE CATEGORY
-export const create = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+export const create = async (req: Request, res: Response): Promise<void> => {
   try {
     const category = await categoryService.createCategory(req.body);
 
@@ -26,11 +25,10 @@ export const create = async (
   }
 };
 
+// ===============================
 // GET ALL CATEGORIES
-export const getAll = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+export const getAll = async (_req: Request, res: Response): Promise<void> => {
   try {
     const categories = await categoryService.getCategories();
 
@@ -47,18 +45,13 @@ export const getAll = async (
   }
 };
 
+// ===============================
 // UPDATE CATEGORY
-export const update = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+export const update = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
-
-    const category = await categoryService.updateCategory(
-      id,
-      req.body
-    );
+    const category = await categoryService.updateCategory(id, req.body);
 
     if (!category) {
       res.status(404).json({
@@ -81,14 +74,12 @@ export const update = async (
   }
 };
 
+// ===============================
 // DELETE CATEGORY
-export const remove = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+export const remove = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
-
     const category = await categoryService.deleteCategory(id);
 
     if (!category) {
@@ -111,10 +102,10 @@ export const remove = async (
   }
 };
 
-export const getTree = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+// ===============================
+// GET CATEGORY TREE
+// ===============================
+export const getTree = async (_req: Request, res: Response): Promise<void> => {
   try {
     const categories = await categoryService.getCategoryTree();
 
@@ -122,68 +113,38 @@ export const getTree = async (
       success: true,
       data: categories,
     });
-
-  } catch(error:any) {
+  } catch (error: any) {
     res.status(500).json({
-      success:false,
-      message:error.message,
+      success: false,
+      message: error.message,
     });
   }
 };
 
+// ===============================
 // GET CATEGORY BY SLUG
-export const getBySlug = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-
+// ===============================
+export const getBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
-
     const slug = req.params.slug as string;
-
-
-    const category =
-      await categoryService.getCategoryBySlug(slug);
-
-
+    const category = await categoryService.getCategoryBySlug(slug);
 
     if (!category) {
-
       res.status(404).json({
-
         success: false,
-
         message: "Category not found",
-
       });
-
       return;
-
     }
 
-
-
     res.status(200).json({
-
       success: true,
-
       data: category,
-
     });
-
-
   } catch (error: any) {
-
-
     res.status(500).json({
-
       success: false,
-
       message: error.message,
-
     });
-
-
   }
-
 };

@@ -8,7 +8,6 @@ const userSchema = new Schema<IUser>(
       required: true,
       trim: true,
     },
-
     email: {
       type: String,
       required: true,
@@ -16,28 +15,23 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
-
     password: {
       type: String,
       required: true,
     },
-
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-
     resetPasswordToken: {
-  type: String,
-  default: null,
-},
-
-resetPasswordExpire: {
-  type: Date,
-  default: null,
-},
-
+      type: String,
+      default: null,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
