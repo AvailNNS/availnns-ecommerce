@@ -23,6 +23,8 @@ import adminDashboardRoutes from "./admin.dashboard.routes";
 
 import couponRoutes from "./coupon.routes";
 
+import settingsRoutes from "./settings.route";
+import deliveryZoneRoutes from "./deliveryZone.routes";
 
 const router = Router();
 
@@ -54,6 +56,15 @@ router.use(
 );
 
 // ===============================
+// SETTINGS
+// ===============================
+
+router.use(
+  "/settings",
+  settingsRoutes
+);
+
+// ===============================
 // CATEGORY
 // ===============================
 
@@ -76,7 +87,6 @@ router.use(
   productRoutes
 );
 
-
 router.use(
   "/products",
   productRoutes
@@ -91,12 +101,10 @@ router.use(
   reviewRoutes
 );
 
-
 router.use(
   "/wishlist",
   wishlistRoutes
 );
-
 
 router.use(
   "/cart",
@@ -140,6 +148,14 @@ router.use(
 );
 
 // ===============================
+// DELIVERY ZONES
+// ===============================
+router.use(
+  "/delivery-zones",
+  deliveryZoneRoutes
+);
+
+// ===============================
 // ADMIN ORDERS
 // ===============================
 
@@ -148,17 +164,18 @@ router.use(
   adminOrderRoutes
 );
 
+
 // ===============================
 // API CHECK
 // ===============================
 
 router.get(
   "/",
-  (_req,res)=>{
+  (_req, res) => {
 
     res.json({
 
-      success:true,
+      success: true,
 
       message:
         "AvailNNS API v1 🚀",
@@ -167,6 +184,5 @@ router.get(
 
   }
 );
-
 
 export default router;

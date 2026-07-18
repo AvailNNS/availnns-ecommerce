@@ -20,6 +20,7 @@ import {
   LogOut,
   Store,
   X,
+  MapPinned,
 } from "lucide-react";
 
 
@@ -67,6 +68,11 @@ href:"/admin/coupons",
 icon:TicketPercent,
 },
 
+{
+  name:"Delivery Zones",
+  href:"/admin/delivery-zones",
+  icon:MapPinned,
+},
 
 {
 name:"Settings",

@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import useCart from "@/hooks/useCart";
 import CartItem from "@/components/cart/CartItem";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CartPage() {
   const { cart, loading, totalItems } = useCart();
+  const { formatPrice } = useCurrency(); // কারেন্সি কনটেক্সট থেকে ফর্ম্যাটার আনা হলো
 
   // Loading State
   if (loading) {
@@ -86,7 +88,7 @@ export default function CartPage() {
                 { icon: Sparkles, title: "Premium Quality", desc: "Verified products" },
               ].map((b, i) => (
                 <div key={i} className="rounded-2xl border bg-white p-5">
-                  <b.icon size={24} />
+                  <b.icon size={24} className="text-gray-700" />
                   <h3 className="mt-3 font-bold">{b.title}</h3>
                   <p className="mt-1 text-sm text-gray-500">{b.desc}</p>
                 </div>
@@ -102,15 +104,15 @@ export default function CartPage() {
               {/* Free Shipping Progress */}
               <div className="mb-6 rounded-xl bg-gray-50 p-4">
                 <div className="flex justify-between text-sm font-medium">
-                  <span>Free Shipping</span>
-                  <span>${subtotal.toFixed(2)}/100</span>
+                  <span>Free Shipping Progress</span>
+                  <span>{formatPrice(subtotal)} / {formatPrice(100)}</span>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-200">
                   <div className="h-full bg-black transition-all" style={{ width: `${progress}%` }} />
                 </div>
                 {subtotal < 100 ? (
                   <p className="mt-2 text-xs text-gray-500">
-                    Add ${(100 - subtotal).toFixed(2)} more to unlock free shipping
+                    Add {formatPrice(100 - subtotal)} more to unlock free shipping
                   </p>
                 ) : (
                   <p className="mt-2 text-xs font-semibold text-green-600">🎉 Free shipping unlocked</p>
@@ -121,21 +123,23 @@ export default function CartPage() {
               <div className="space-y-4 text-sm">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="font-semibold">{shipping === 0 ? "FREE" : `$${shipping}`}</span>
+                  <span className="font-semibold">
+                    {shipping === 0 ? "FREE" : formatPrice(shipping)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax (5%)</span>
-                  <span className="font-semibold">${tax.toFixed(2)}</span>
+                  <span className="font-semibold">{formatPrice(tax)}</span>
                 </div>
               </div>
 
               <div className="mt-6 flex items-center justify-between border-t pt-5">
                 <span className="text-lg font-bold">Total</span>
-                <span className="text-3xl font-black">${total.toFixed(2)}</span>
+                <span className="text-3xl font-black">{formatPrice(total)}</span>
               </div>
 
               {/* Actions */}
