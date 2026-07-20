@@ -1,13 +1,18 @@
 import { Schema, model } from "mongoose";
 import { IUser } from "../types/user.types";
 
+
 const userSchema = new Schema<IUser>(
+
   {
+
     name: {
       type: String,
       required: true,
       trim: true,
     },
+
+
     email: {
       type: String,
       required: true,
@@ -15,27 +20,99 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
+
+
     password: {
       type: String,
       required: true,
     },
+
+
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: [
+        "user",
+        "admin"
+      ],
       default: "user",
     },
-    resetPasswordToken: {
+
+
+
+    // =====================
+    // PROFILE
+    // =====================
+
+
+    avatar: {
+
       type: String,
-      default: null,
+
+      default: "",
+
     },
+
+
+
+    phone: {
+
+      type: String,
+
+      default: "",
+
+      trim:true,
+
+    },
+
+
+
+    address: {
+
+      type: String,
+
+      default: "",
+
+      trim:true,
+
+    },
+
+
+
+    // =====================
+    // PASSWORD RESET
+    // =====================
+
+
+    resetPasswordToken: {
+
+      type: String,
+
+      default: null,
+
+    },
+
+
     resetPasswordExpire: {
+
       type: Date,
+
       default: null,
+
     },
+
+
   },
+
+
   {
-    timestamps: true,
+    timestamps:true,
   }
+
 );
 
-export default model<IUser>("User", userSchema);
+
+
+export default model<IUser>(
+  "User",
+  userSchema
+);

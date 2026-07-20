@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import { registerUser, loginUser } from "../services/auth.service";
+import {
+  registerUser,
+  loginUser,
+} from "../services/auth.service";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail";
@@ -8,41 +11,69 @@ import sendEmail from "../utils/sendEmail";
 // ===============================
 // REGISTER USER
 // ===============================
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
   try {
-    const user = await registerUser(req.body);
+
+    const data =
+      await registerUser(
+        req.body
+      );
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      data: user,
+      message:
+        "User registered successfully",
+      user: data.user,
+      token: data.token,
     });
+
   } catch (error: any) {
+
     res.status(400).json({
       success: false,
       message: error.message,
     });
+
   }
+
 };
 
 // ===============================
 // LOGIN USER
 // ===============================
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
   try {
-    const data = await loginUser(req.body);
+
+    const data =
+      await loginUser(
+        req.body
+      );
 
     res.status(200).json({
       success: true,
-      message: "Login successful",
-      data,
+      message:
+        "Login successful",
+      user: data.user,
+      token: data.token,
     });
+
   } catch (error: any) {
+
     res.status(400).json({
       success: false,
       message: error.message,
     });
+
   }
+
 };
 
 // ===============================

@@ -1,11 +1,9 @@
 "use client";
 
-
 import {
   useEffect,
   useState,
 } from "react";
-
 
 import {
   notFound,
@@ -25,12 +23,8 @@ import {
 
 
 import ProductGallery from "@/components/product/ProductGallery";
-
 import ProductInfo from "@/components/product/ProductInfo";
-
 import ProductSection from "@/components/product/ProductSection";
-
-
 
 
 
@@ -40,9 +34,9 @@ params,
 
 }:{
 
-params:{
-id:string;
-};
+params: Promise<{
+  id:string;
+}>;
 
 }){
 
@@ -59,12 +53,8 @@ const [recent,setRecent] =
 useState<Product[]>([]);
 
 
-
 const [loading,setLoading] =
 useState(true);
-
-
-
 
 
 
@@ -81,33 +71,28 @@ setLoading(true);
 
 
 
+const {id} = await params;
+
+
+
 const [
-
 productRes,
-
 relatedRes,
-
 newRes
 
 ] = await Promise.all([
 
 
-getProductById(
-params.id
-),
+getProductById(id),
 
 
-getRelatedProducts(
-params.id
-),
+getRelatedProducts(id),
 
 
 getNewArrivalProducts()
 
 
 ]);
-
-
 
 
 
@@ -126,12 +111,9 @@ return;
 
 
 
-
-
 setProduct(
 currentProduct
 );
-
 
 
 
@@ -141,20 +123,16 @@ relatedRes || []
 
 
 
-
-
 setRecent(
 
 newRes
 .filter(
 (item:Product)=>
-item._id !== params.id
+item._id !== id
 )
 .slice(0,4)
 
 );
-
-
 
 
 
@@ -183,14 +161,7 @@ setLoading(false);
 load();
 
 
-},[
-params.id
-]);
-
-
-
-
-
+},[params]);
 
 
 
@@ -198,46 +169,22 @@ params.id
 
 if(loading){
 
-
 return (
 
-<div
-
-className="
+<div className="
 min-h-screen
 flex
 items-center
 justify-center
-"
-
->
-
-<div
-
-className="
-animate-pulse
-text-gray-500
-"
-
->
+">
 
 Loading product...
 
 </div>
 
-
-</div>
-
 );
 
-
 }
-
-
-
-
-
-
 
 
 
@@ -249,168 +196,88 @@ return null;
 
 
 
-
-
-
-
-
 return (
 
-<main
-
-className="
+<main className="
 min-h-screen
 bg-gray-50
 py-10
-"
+">
 
->
-
-
-<div
-
-className="
+<div className="
 mx-auto
 max-w-7xl
 px-6
-"
-
->
+">
 
 
-
-
-
-{/* Breadcrumb */}
-
-
-<div
-
-className="
+<div className="
 mb-8
 text-sm
 text-gray-500
-"
-
->
-
+">
 
 Home
-
 <span className="mx-2">
 /
 </span>
-
 
 Shop
-
 <span className="mx-2">
 /
 </span>
 
-
 <span className="text-black">
-
 {product.name}
-
 </span>
-
-
 
 </div>
 
 
 
-
-
-
-
-
-
-{/* PRODUCT AREA */}
-
-
-
-<section
-
-className="
+<section className="
 grid
 gap-12
 lg:grid-cols-2
-"
-
->
+">
 
 
 <ProductGallery
-
 product={product}
-
 />
-
 
 
 
 <ProductInfo
-
 product={product}
-
 />
-
 
 
 </section>
 
 
 
-
-
-
-
-
-
-{/* RELATED */}
-
-
-
 {
 related.length > 0 &&
 
-
 <ProductSection
-
 title="Related Products"
-
 products={related}
-
 />
 
-
 }
-
-
-
-
-
-
 
 
 
 {
 recent.length > 0 &&
 
-
 <ProductSection
-
 title="New Arrivals"
-
 products={recent}
-
 />
 
-
 }
-
 
 
 
@@ -418,7 +285,6 @@ products={recent}
 
 
 </main>
-
 
 );
 

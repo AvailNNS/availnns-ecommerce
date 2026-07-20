@@ -7,8 +7,9 @@ import api from "@/services/api";
 // =========================
 
 export const createOrder = async(
- data:any
+  data:any
 )=>{
+
 
 const res =
 await api.post(
@@ -19,7 +20,10 @@ data
 
 return res.data;
 
+
 };
+
+
 
 
 
@@ -30,88 +34,49 @@ return res.data;
 
 export const getMyOrders = async()=>{
 
+
 const res =
 await api.get(
 "/orders/my-orders"
 );
 
 
-return res.data.orders || [];
+
+return (
+  res.data.orders ||
+  []
+);
+
 
 };
 
 
 
 
+
+
 // =========================
-// GET ORDER BY ID
+// GET SINGLE ORDER
 // =========================
 
 export const getOrderById = async(
- id:string,
- token:string
+  id:string
 )=>{
 
 
 const res =
 await api.get(
 
-`/orders/${id}`,
-
-{
-
-headers:{
-
-Authorization:
-`Bearer ${token}`
-
-}
-
-}
-
-);
-
-
-return res.data.order || res.data;
-
-
-};
-
-
-
-
-
-
-// =========================
-// GET ADMIN ORDERS
-// =========================
-
-export const getAdminOrders = async(
- token:string
-)=>{
-
-
-const res =
-await api.get(
-
-"/admin/orders",
-
-{
-
-headers:{
-
-Authorization:
-`Bearer ${token}`
-
-}
-
-}
+`/orders/${id}`
 
 );
 
 
 
-return res.data.orders || [];
+return (
+  res.data.order ||
+  res.data
+);
 
 
 };
@@ -123,45 +88,18 @@ return res.data.orders || [];
 
 
 // =========================
-// UPDATE ORDER STATUS
+// CANCEL ORDER
 // =========================
 
-export const updateOrderStatus = async(
-
-id:string,
-
-status:string,
-
-token:string
-
+export const cancelOrder = async(
+ id:string
 )=>{
 
 
 const res =
 await api.put(
 
-
-`/admin/orders/${id}/status`,
-
-
-{
-
-status
-
-},
-
-
-{
-
-headers:{
-
-Authorization:
-`Bearer ${token}`
-
-}
-
-}
-
+`/orders/${id}/cancel`
 
 );
 
@@ -179,7 +117,76 @@ return res.data;
 
 
 // =========================
-// UPDATE PAYMENT
+// GET ADMIN ORDERS
+// =========================
+
+export const getAdminOrders = async()=>{
+
+
+const res =
+await api.get(
+
+"/admin/orders"
+
+);
+
+
+
+return (
+ res.data.orders ||
+ []
+);
+
+
+};
+
+
+
+
+
+
+
+// =========================
+// UPDATE ORDER STATUS (ADMIN)
+// =========================
+
+export const updateOrderStatus = async(
+
+id:string,
+
+status:string
+
+)=>{
+
+
+const res =
+await api.put(
+
+`/admin/orders/${id}/status`,
+
+{
+
+status
+
+}
+
+);
+
+
+
+return res.data;
+
+
+};
+
+
+
+
+
+
+
+// =========================
+// UPDATE PAYMENT STATUS
 // =========================
 
 export const updatePayment = async(
@@ -188,9 +195,7 @@ id:string,
 
 paymentMethod:string,
 
-paymentStatus:string,
-
-token:string
+paymentStatus:string
 
 )=>{
 
@@ -200,24 +205,11 @@ await api.put(
 
 `/admin/orders/${id}/payment`,
 
-
 {
 
 paymentMethod,
 
 paymentStatus
-
-},
-
-
-{
-
-headers:{
-
-Authorization:
-`Bearer ${token}`
-
-}
 
 }
 

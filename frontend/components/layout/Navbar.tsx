@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
   Menu,
@@ -24,21 +24,11 @@ import useCart from "@/hooks/useCart";
 
 // Context
 import { useWishlist } from "@/context/WishlistContext";
-
-
-
-interface UserData {
-  name:string;
-  email?:string;
-}
+import { useAuth } from "@/context/AuthContext";
 
 
 
 export default function Navbar(){
-
-
-const router = useRouter();
-
 
 
 const [
@@ -52,13 +42,6 @@ const [
   cartOpen,
   setCartOpen
 ]=useState(false);
-
-
-
-const [
-  user,
-  setUser
-]=useState<UserData | null>(null);
 
 
 
@@ -77,7 +60,6 @@ const {
 }=useWishlist();
 
 
-
 const wishlistCount =
 wishlist.length;
 
@@ -85,71 +67,9 @@ wishlist.length;
 
 
 
-
-
-useEffect(()=>{
-
-
-try{
-
-
-const savedUser =
-localStorage.getItem("user");
-
-
-
-if(savedUser){
-
-setUser(
-JSON.parse(savedUser)
-);
-
-}
-
-
-
-}catch(error){
-
-console.log(
-"User load error",
-error
-);
-
-
-}
-
-
-},[]);
-
-
-
-
-
-
-
-const logout = ()=>{
-
-
-localStorage.removeItem(
-"token"
-);
-
-
-localStorage.removeItem(
-"user"
-);
-
-
-setUser(null);
-
-
-router.push(
-"/login"
-);
-
-
-};
-
+const {
+  user
+}=useAuth();
 
 
 
@@ -162,15 +82,14 @@ return (
 
 <>
 
-
 <header
 
 className="
 sticky
 top-0
 z-50
-border-b
 bg-white
+border-b
 shadow-sm
 "
 
@@ -180,20 +99,17 @@ shadow-sm
 <div
 
 className="
-mx-auto
-flex
 max-w-7xl
-items-center
-justify-between
-gap-4
+mx-auto
 px-6
 py-4
-md:gap-6
+flex
+items-center
+justify-between
+gap-5
 "
 
 >
-
-
 
 
 
@@ -201,17 +117,18 @@ md:gap-6
 
 <button
 
-onClick={()=>setMobileMenuOpen(true)}
+onClick={()=>
+setMobileMenuOpen(true)
+}
 
 className="
-p-1
-text-gray-600
 md:hidden
+text-gray-600
 "
 
 >
 
-<Menu size={24}/>
+<Menu size={25}/>
 
 </button>
 
@@ -228,10 +145,9 @@ md:hidden
 href="/"
 
 className="
-shrink-0
 text-2xl
-font-bold
-tracking-tight
+font-black
+tracking-wide
 "
 
 >
@@ -246,14 +162,16 @@ NOPTRIX
 
 
 
+
 {/* Search */}
 
 <div
 
 className="
 hidden
+md:flex
 flex-1
-md:block
+max-w-xl
 "
 
 >
@@ -268,15 +186,16 @@ md:block
 
 
 
-{/* Right */}
+
+
+{/* Actions */}
 
 <div
 
 className="
 flex
 items-center
-gap-4
-sm:gap-5
+gap-5
 "
 
 >
@@ -295,13 +214,13 @@ href="/wishlist"
 
 className="
 relative
-p-1
+hover:text-red-500
+transition
 "
 
 >
 
-<Heart size={22}/>
-
+<Heart size={23}/>
 
 
 {
@@ -311,18 +230,18 @@ wishlistCount > 0 &&
 
 className="
 absolute
--right-1
--top-1
+-top-2
+-right-2
+bg-red-500
+text-white
+text-[10px]
+w-5
+h-5
+rounded-full
 flex
-h-4
-w-4
 items-center
 justify-center
-rounded-full
-bg-red-500
-text-[10px]
 font-bold
-text-white
 "
 
 >
@@ -349,23 +268,24 @@ wishlistCount
 
 
 
+
 {/* Cart */}
 
 <button
 
-onClick={()=>setCartOpen(true)}
+onClick={()=>
+setCartOpen(true)
+}
 
 className="
 relative
-p-1
+hover:text-blue-600
+transition
 "
 
 >
 
-
-<ShoppingCart size={22}/>
-
-
+<ShoppingCart size={23}/>
 
 
 {
@@ -375,18 +295,18 @@ totalItems > 0 &&
 
 className="
 absolute
--right-1
--top-1
+-top-2
+-right-2
+bg-black
+text-white
+text-[10px]
+w-5
+h-5
+rounded-full
 flex
-h-4
-w-4
 items-center
 justify-center
-rounded-full
-bg-black
-text-[10px]
 font-bold
-text-white
 "
 
 >
@@ -404,7 +324,6 @@ totalItems
 }
 
 
-
 </button>
 
 
@@ -414,8 +333,8 @@ totalItems
 
 
 
-{/* User */}
 
+{/* Account */}
 
 {
 
@@ -423,60 +342,42 @@ user ?
 
 (
 
-<div
-
-className="
-flex
-items-center
-gap-3
-border-l
-pl-4
-"
-
->
-
-
 <Link
 
 href="/dashboard"
 
 className="
-hidden
-text-sm
-font-medium
-sm:block
+flex
+items-center
+gap-2
+border-l
+pl-5
 hover:text-blue-600
+transition
+"
+
+>
+
+<User size={23}/>
+
+
+<span
+
+className="
+hidden
+sm:block
+font-medium
+text-sm
 "
 
 >
 
 {user.name}
 
+</span>
+
+
 </Link>
-
-
-
-
-<button
-
-onClick={logout}
-
-className="
-text-sm
-font-medium
-text-red-500
-hover:text-red-700
-"
-
->
-
-Logout
-
-</button>
-
-
-
-</div>
 
 )
 
@@ -490,11 +391,14 @@ Logout
 
 href="/login"
 
-className="p-1"
+className="
+hover:text-blue-600
+transition
+"
 
 >
 
-<User size={22}/>
+<User size={23}/>
 
 </Link>
 
@@ -504,13 +408,14 @@ className="p-1"
 
 
 
+
+</div>
+
+
+
 </div>
 
 
-
-
-
-</div>
 
 
 
@@ -523,10 +428,10 @@ className="p-1"
 <div
 
 className="
+md:hidden
 border-t
 px-6
 py-3
-md:hidden
 "
 
 >
@@ -537,8 +442,9 @@ md:hidden
 
 
 
-
 </header>
+
+
 
 
 
@@ -552,9 +458,12 @@ md:hidden
 
 open={cartOpen}
 
-onClose={()=>setCartOpen(false)}
+onClose={()=>
+setCartOpen(false)
+}
 
 />
+
 
 
 
@@ -568,7 +477,9 @@ onClose={()=>setCartOpen(false)}
 
 open={mobileMenuOpen}
 
-onClose={()=>setMobileMenuOpen(false)}
+onClose={()=>
+setMobileMenuOpen(false)
+}
 
 />
 

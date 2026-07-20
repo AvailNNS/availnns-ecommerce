@@ -24,9 +24,19 @@ import adminDashboardRoutes from "./admin.dashboard.routes";
 import couponRoutes from "./coupon.routes";
 
 import settingsRoutes from "./settings.route";
+
 import deliveryZoneRoutes from "./deliveryZone.routes";
 
+import dashboardRoutes from "./dashboard.routes";
+
+import uploadRoutes from "./upload.routes";
+
+
+
 const router = Router();
+
+
+
 
 // ===============================
 // AUTH
@@ -37,6 +47,10 @@ router.use(
   authRoutes
 );
 
+
+
+
+
 // ===============================
 // USERS
 // ===============================
@@ -45,6 +59,10 @@ router.use(
   "/users",
   userRoutes
 );
+
+
+
+
 
 // ===============================
 // ADMIN
@@ -55,6 +73,10 @@ router.use(
   adminRoutes
 );
 
+
+
+
+
 // ===============================
 // SETTINGS
 // ===============================
@@ -63,6 +85,10 @@ router.use(
   "/settings",
   settingsRoutes
 );
+
+
+
+
 
 // ===============================
 // CATEGORY
@@ -73,10 +99,15 @@ router.use(
   categoryRoutes
 );
 
+
 router.use(
   "/categories",
   categoryRoutes
 );
+
+
+
+
 
 // ===============================
 // PRODUCTS
@@ -87,10 +118,15 @@ router.use(
   productRoutes
 );
 
+
 router.use(
   "/products",
   productRoutes
 );
+
+
+
+
 
 // ===============================
 // CUSTOMER
@@ -101,15 +137,47 @@ router.use(
   reviewRoutes
 );
 
+
 router.use(
   "/wishlist",
   wishlistRoutes
 );
 
+
 router.use(
   "/cart",
   cartRoutes
 );
+
+
+
+
+
+// ===============================
+// USER DASHBOARD
+// ===============================
+
+router.use(
+  "/dashboard",
+  dashboardRoutes
+);
+
+
+
+
+
+// ===============================
+// UPLOAD
+// ===============================
+
+router.use(
+  "/upload",
+  uploadRoutes
+);
+
+
+
+
 
 // ===============================
 // ORDERS
@@ -120,6 +188,10 @@ router.use(
   orderRoutes
 );
 
+
+
+
+
 // ===============================
 // COUPON
 // ===============================
@@ -128,6 +200,10 @@ router.use(
   "/coupons",
   couponRoutes
 );
+
+
+
+
 
 // ===============================
 // PAYMENT
@@ -138,6 +214,10 @@ router.use(
   paymentRoutes
 );
 
+
+
+
+
 // ===============================
 // ADMIN DASHBOARD
 // ===============================
@@ -147,13 +227,22 @@ router.use(
   adminDashboardRoutes
 );
 
+
+
+
+
 // ===============================
 // DELIVERY ZONES
 // ===============================
+
 router.use(
   "/delivery-zones",
   deliveryZoneRoutes
 );
+
+
+
+
 
 // ===============================
 // ADMIN ORDERS
@@ -165,6 +254,9 @@ router.use(
 );
 
 
+
+
+
 // ===============================
 // API CHECK
 // ===============================
@@ -173,16 +265,20 @@ router.get(
   "/",
   (_req, res) => {
 
+
     res.json({
 
-      success: true,
+      success:true,
 
       message:
-        "AvailNNS API v1 🚀",
+      "AvailNNS API v1 🚀",
 
     });
 
+
   }
 );
+
+
 
 export default router;

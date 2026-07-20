@@ -7,19 +7,15 @@ import {
 } from "react";
 
 
-import DashboardSidebar
-from "@/components/dashboard/DashboardSidebar";
-
-
-import DashboardHeader
+import DashboardHeader 
 from "@/components/dashboard/DashboardHeader";
 
 
-import DashboardStats
+import DashboardStats 
 from "@/components/dashboard/DashboardStats";
 
 
-import RecentOrders
+import RecentOrders 
 from "@/components/dashboard/RecentOrders";
 
 
@@ -29,21 +25,24 @@ import {
 
 
 
+
 export default function DashboardPage(){
 
 
-const [data,setData] = useState<any>(null);
+const [data,setData] =
+useState<any>(null);
 
-const [loading,setLoading] = useState(true);
+
+const [loading,setLoading] =
+useState(true);
+
 
 
 
 
 useEffect(()=>{
 
-
 loadDashboard();
-
 
 },[]);
 
@@ -53,10 +52,12 @@ loadDashboard();
 
 const loadDashboard = async()=>{
 
+
 try{
 
 
-const result = await getUserDashboard();
+const result =
+await getUserDashboard();
 
 
 setData(result);
@@ -68,7 +69,7 @@ setData(result);
 
 console.log(
 "Dashboard Error:",
-error
+error?.response?.data || error.message
 );
 
 
@@ -88,8 +89,8 @@ setLoading(false);
 
 
 
-if(loading){
 
+if(loading){
 
 return (
 
@@ -98,16 +99,13 @@ min-h-screen
 flex
 items-center
 justify-center
-text-gray-500
 ">
 
 Loading dashboard...
 
-
 </div>
 
 );
-
 
 }
 
@@ -116,7 +114,6 @@ Loading dashboard...
 
 
 if(!data){
-
 
 return (
 
@@ -130,14 +127,11 @@ text-red-500
 
 Failed to load dashboard
 
-
 </div>
 
 );
 
-
 }
-
 
 
 
@@ -147,28 +141,8 @@ Failed to load dashboard
 return (
 
 <div className="
-flex
-min-h-screen
-bg-gray-50
+space-y-6
 ">
-
-
-{/* Sidebar */}
-
-<DashboardSidebar/>
-
-
-
-
-
-{/* Content */}
-
-<main className="
-flex-1
-p-4
-md:p-8
-">
-
 
 
 <DashboardHeader
@@ -183,7 +157,7 @@ user={data.user}
 
 <DashboardStats
 
-orders={data.orders || []}
+stats={data.stats}
 
 />
 
@@ -199,12 +173,9 @@ orders={data.orders || []}
 
 
 
-</main>
-
-
-
 </div>
 
 );
+
 
 }

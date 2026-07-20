@@ -83,7 +83,8 @@ export function AuthProvider({
       try {
 
         const token =
-          Cookies.get("token");
+          Cookies.get("token") ||
+          localStorage.getItem("token");
 
         if (!token) {
 
@@ -105,6 +106,10 @@ export function AuthProvider({
         console.error(error);
 
         Cookies.remove(
+          "token"
+        );
+
+        localStorage.removeItem(
           "token"
         );
 
@@ -134,6 +139,11 @@ export function AuthProvider({
         {
           expires: 7,
         }
+      );
+
+      localStorage.setItem(
+        "token",
+        res.token
       );
 
       setUser(
@@ -168,6 +178,11 @@ export function AuthProvider({
         }
       );
 
+      localStorage.setItem(
+        "token",
+        res.token
+      );
+
       setUser(
         res.user
       );
@@ -185,6 +200,10 @@ export function AuthProvider({
   const logout = () => {
 
     Cookies.remove(
+      "token"
+    );
+
+    localStorage.removeItem(
       "token"
     );
 

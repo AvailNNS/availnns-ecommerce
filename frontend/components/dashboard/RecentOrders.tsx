@@ -5,15 +5,22 @@ import Link from "next/link";
 
 import {
   Eye,
+  Package,
+  CreditCard,
 } from "lucide-react";
 
 
 
 export default function RecentOrders({
-  orders
+
+orders
+
 }:{
-  orders:any[];
+
+orders:any[];
+
 }){
+
 
 
 const recentOrders =
@@ -21,41 +28,125 @@ orders.slice(0,5);
 
 
 
+
+
+const statusStyle = (status:string)=>{
+
+
+switch(status){
+
+
+case "delivered":
+
+return "bg-green-100 text-green-700";
+
+
+case "cancelled":
+
+return "bg-red-100 text-red-700";
+
+
+case "shipped":
+
+return "bg-blue-100 text-blue-700";
+
+
+default:
+
+return "bg-yellow-100 text-yellow-700";
+
+
+}
+
+
+};
+
+
+
+
+
+
+
+
 return (
 
-<div className="
+
+<div
+
+className="
 bg-white
-rounded-xl
+rounded-3xl
 shadow-sm
+border
 p-6
-">
+"
+
+>
 
 
-<div className="
+
+{/* Header */}
+
+<div
+
+className="
 flex
 items-center
 justify-between
-mb-5
-">
+mb-6
+"
+
+>
 
 
-<h2 className="
+<div>
+
+
+<h2
+
+className="
 text-xl
 font-bold
-">
+"
+
+>
 
 Recent Orders
 
 </h2>
 
 
-<Link
-href="/orders"
+<p
+
 className="
 text-sm
-font-medium
+text-gray-500
+mt-1
+"
+
+>
+
+Your latest purchases
+
+</p>
+
+
+</div>
+
+
+
+
+
+<Link
+
+href="/dashboard/orders"
+
+className="
+text-sm
+font-semibold
 hover:underline
 "
+
 >
 
 View All
@@ -63,7 +154,11 @@ View All
 </Link>
 
 
+
 </div>
+
+
+
 
 
 
@@ -73,111 +168,126 @@ View All
 recentOrders.length===0 ?
 
 
+
 (
 
-<div className="
+<div
+
+className="
+py-12
 text-center
-py-10
 text-gray-500
-">
+"
+
+>
+
+
+<Package
+
+size={40}
+
+className="
+mx-auto
+mb-3
+"
+
+/>
+
+
+<p>
 
 No orders found
 
+</p>
+
+
 </div>
+
 
 )
 
-
 :
+
+
 
 (
 
-<div className="
-overflow-x-auto
-">
 
+<div
 
-<table className="
-w-full
-text-left
-">
+className="
+space-y-4
+"
 
-
-<thead>
-
-<tr className="
-border-b
-text-gray-500
-text-sm
-">
-
-
-<th className="
-py-3
-">
-Order ID
-</th>
-
-
-<th>
-Date
-</th>
-
-
-<th>
-Status
-</th>
-
-
-<th>
-Amount
-</th>
-
-
-<th>
-Action
-</th>
-
-
-</tr>
-
-
-</thead>
-
-
-
-
-
-<tbody>
+>
 
 
 {
 recentOrders.map((order)=>(
 
 
-<tr
+<div
+
 key={order._id}
+
 className="
-border-b
-hover:bg-gray-50
+border
+rounded-2xl
+p-5
+hover:shadow-md
 transition
 "
+
 >
 
 
-<td className="
-py-4
-font-medium
-">
 
-#
+<div
+
+className="
+flex
+flex-col
+md:flex-row
+md:items-center
+justify-between
+gap-4
+"
+
+>
+
+
+
+
+
+{/* Order Info */}
+
+<div>
+
+
+<p
+
+className="
+font-bold
+"
+
+>
+
+Order #
 {order._id.slice(-8)}
 
-</td>
+</p>
 
 
 
-<td>
+<p
+
+className="
+text-sm
+text-gray-500
+mt-1
+"
+
+>
 
 {
 new Date(
@@ -186,45 +296,37 @@ order.createdAt
 .toLocaleDateString()
 }
 
-</td>
+</p>
+
+
+</div>
 
 
 
 
 
-<td>
+
+
+
+
+{/* Status */}
+
+
+<div>
 
 
 <span
+
 className={`
-px-3
-py-1
+px-4
+py-2
 rounded-full
 text-xs
-font-semibold
-
-${
-order.orderStatus==="delivered"
-
-?
-
-"bg-green-100 text-green-700"
-
-:
-
-order.orderStatus==="cancelled"
-
-?
-
-"bg-red-100 text-red-700"
-
-:
-
-"bg-yellow-100 text-yellow-700"
-
-}
-
+font-bold
+capitalize
+${statusStyle(order.orderStatus)}
 `}
+
 >
 
 {
@@ -234,41 +336,98 @@ order.orderStatus
 </span>
 
 
-</td>
+</div>
 
 
 
 
 
-<td className="
-font-semibold
-">
-
-৳ {order.totalPrice}
-
-
-</td>
 
 
 
 
-<td>
+{/* Payment */}
+
+
+<div
+
+className="
+flex
+items-center
+gap-2
+text-sm
+text-gray-600
+"
+
+>
+
+
+<CreditCard size={16}/>
+
+
+{
+order.paymentStatus || "Pending"
+
+}
+
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* Amount */}
+
+
+<div
+
+className="
+font-bold
+text-lg
+"
+
+>
+
+৳ {order.totalPrice?.toFixed(2)}
+
+</div>
+
+
+
+
+
+
+
+
+
+{/* Action */}
 
 
 <Link
+
+
 href={`/orders/${order._id}`}
+
+
 className="
-inline-flex
+flex
 items-center
+justify-center
 gap-2
-px-3
-py-2
-rounded-lg
 bg-black
 text-white
+px-4
+py-2
+rounded-xl
 text-sm
 hover:opacity-80
 "
+
 >
 
 
@@ -281,33 +440,34 @@ View
 </Link>
 
 
-</td>
+
+
+</div>
 
 
 
-
-</tr>
+</div>
 
 
 ))
+
 }
 
 
-</tbody>
-
-
-</table>
-
-
 </div>
+
+
 
 )
 
+
 }
 
 
 
 </div>
+
+
 
 );
 

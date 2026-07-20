@@ -1,27 +1,64 @@
 import { Router } from "express";
-import bcrypt from "bcryptjs";
-import { register, login, forgotPassword, resetPassword } from "../controllers/auth.controller";
+
+import {
+  register,
+  login,
+  forgotPassword,
+  resetPassword,
+} from "../controllers/auth.controller";
+
+import { getMe } from "../controllers/user.controller";
+
+import authMiddleware from "../middleware/auth.middleware";
+
 import validate from "../middleware/validate.middleware";
-import { registerSchema, forgotPasswordSchema, resetPasswordSchema } from "../validators/auth.validator";
+
+import {
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "../validators/auth.validator";
 
 const router = Router();
 
-// Register
+// ===============================
+// REGISTER
+// ===============================
 router.post(
   "/register",
   validate(registerSchema),
   register
 );
 
-// Login
-router.post("/login", login);
+// ===============================
+// LOGIN
+// ===============================
+router.post(
+  "/login",
+  login
+);
 
+// ===============================
+// GET CURRENT USER
+// ===============================
+router.get(
+  "/me",
+  authMiddleware,
+  getMe
+);
+
+// ===============================
+// FORGOT PASSWORD
+// ===============================
 router.post(
   "/forgot-password",
   validate(forgotPasswordSchema),
   forgotPassword
 );
 
+// ===============================
+// RESET PASSWORD
+// ===============================
 router.post(
   "/reset-password/:token",
   validate(resetPasswordSchema),

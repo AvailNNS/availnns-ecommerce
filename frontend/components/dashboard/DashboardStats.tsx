@@ -5,75 +5,57 @@ import {
   ShoppingBag,
   Clock,
   CheckCircle,
-  Wallet,
+  Wallet
 } from "lucide-react";
 
 
 
+interface Props {
+
+  stats:{
+    totalOrders:number;
+    pendingOrders:number;
+    deliveredOrders:number;
+    totalSpent:number;
+  };
+
+}
+
+
+
 export default function DashboardStats({
-  orders
-}:{
-  orders:any[];
-}){
-
-
-const totalOrders = orders.length;
-
-
-const pendingOrders =
-orders.filter(
-(order)=>
-order.orderStatus==="pending"
-).length;
+  stats
+}:Props){
 
 
 
-const deliveredOrders =
-orders.filter(
-(order)=>
-order.orderStatus==="delivered"
-).length;
-
-
-
-const totalSpent =
-orders.reduce(
-(sum,order)=>
-sum + (order.totalPrice || 0),
-0
-);
-
-
-
-
-
-const stats = [
+const cards=[
 
 {
 title:"Total Orders",
-value:totalOrders,
-icon:<ShoppingBag size={25}/>
+value:stats.totalOrders,
+icon:<ShoppingBag size={24}/>
 },
 
 
 {
 title:"Pending Orders",
-value:pendingOrders,
-icon:<Clock size={25}/>
+value:stats.pendingOrders,
+icon:<Clock size={24}/>
 },
 
 
 {
 title:"Delivered",
-value:deliveredOrders,
-icon:<CheckCircle size={25}/>
+value:stats.deliveredOrders,
+icon:<CheckCircle size={24}/>
 },
 
 
 {
 title:"Total Spent",
-value:`৳ ${totalSpent.toFixed(2)}`,
-icon:<Wallet size={25}/>
+value:`৳ ${stats.totalSpent}`,
+icon:<Wallet size={24}/>
 },
 
 
@@ -85,64 +67,67 @@ icon:<Wallet size={25}/>
 
 return (
 
-<div className="
+<div
+className="
 grid
 grid-cols-1
 sm:grid-cols-2
 xl:grid-cols-4
 gap-5
 mb-6
-">
+"
+>
 
 
 {
-stats.map((stat)=>(
+cards.map((card)=>(
+
 
 <div
-key={stat.title}
+
+key={card.title}
+
 className="
 bg-white
-rounded-xl
-shadow-sm
+rounded-2xl
 p-6
+shadow-sm
 flex
-items-center
 justify-between
-hover:shadow-md
-transition
+items-center
 "
+
 >
 
 
 <div>
 
-
-<p className="
+<p
+className="
 text-gray-500
 text-sm
-">
-
-{stat.title}
-
+"
+>
+{card.title}
 </p>
 
 
-<h2 className="
+<h2
+className="
 text-3xl
 font-bold
 mt-2
-">
-
-{stat.value}
-
+"
+>
+{card.value}
 </h2>
 
 
 </div>
 
 
-
-<div className="
+<div
+className="
 w-12
 h-12
 rounded-xl
@@ -151,12 +136,12 @@ text-white
 flex
 items-center
 justify-center
-">
+"
+>
 
-{stat.icon}
+{card.icon}
 
 </div>
-
 
 
 </div>
@@ -166,9 +151,9 @@ justify-center
 }
 
 
-
 </div>
 
 );
+
 
 }

@@ -1,44 +1,34 @@
 import axios from "axios";
-
+import Cookies from "js-cookie";
 
 const api = axios.create({
-
   baseURL:
     process.env.NEXT_PUBLIC_API_URL ||
     "https://effective-telegram-qvvpg7qv66p9h9r79-5000.app.github.dev/api",
-
 });
-
-
-
-
 
 const getStoredToken = () => {
 
-  if(typeof window === "undefined"){
-
+  if (typeof window === "undefined") {
     return null;
-
   }
 
-
-  return localStorage.getItem("token");
+  return (
+    localStorage.getItem("token") ||
+    Cookies.get("token") ||
+    null
+  );
 
 };
 
-
-
-
-
-const isPublicRequest = (url:string = "") => {
-
+const isPublicRequest = (
+  url: string = ""
+) => {
 
   const normalizedUrl =
     url.startsWith("/")
-    ? url
-    : `/${url}`;
-
-
+      ? url
+      : `/${url}`;
 
   return [
 
@@ -63,19 +53,11 @@ const isPublicRequest = (url:string = "") => {
     "/search",
 
   ].some(
-
-    (path)=>
+    (path) =>
       normalizedUrl.startsWith(path)
-
   );
 
-
 };
-
-
-
-
-
 
 // ===============================
 // REQUEST INTERCEPTOR
@@ -83,54 +65,39 @@ const isPublicRequest = (url:string = "") => {
 
 api.interceptors.request.use(
 
-(config)=>{
+  (config) => {
 
+    if (
+      !isPublicRequest(
+        config.url || ""
+      )
+    ) {
 
-  if(
-    !isPublicRequest(
-      config.url || ""
-    )
-  ){
+      const token =
+        getStoredToken();
 
+      if (token) {
 
-    const token =
-      getStoredToken();
+        config.headers.Authorization =
+          `Bearer ${token}`;
 
-
-
-    if(token){
-
-
-      config.headers.Authorization =
-        `Bearer ${token}`;
-
+      }
 
     }
 
+    return config;
+
+  },
+
+  (error) => {
+
+    return Promise.reject(
+      error
+    );
 
   }
 
-
-
-  return config;
-
-
-},
-
-
-(error)=>{
-
-  return Promise.reject(error);
-
-}
-
 );
-
-
-
-
-
-
 
 // ===============================
 // RESPONSE INTERCEPTOR
@@ -138,35 +105,35 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
 
+  (response) =>
+    response,
 
-(response)=>response,
+  (error) => {
 
+    if (
+      error.response?.status === 401
+    ) {
 
-(error)=>{
+      console.log(
+        "Unauthorized"
+      );
 
+      Cookies.remove(
+        "token"
+      );
 
-  if(error.response?.status === 401){
+      localStorage.removeItem(
+        "token"
+      );
 
+    }
 
-    console.log(
-      "Unauthorized"
+    return Promise.reject(
+      error
     );
-
 
   }
 
-
-
-  return Promise.reject(error);
-
-
-}
-
-
 );
-
-
-
-
 
 export default api;
