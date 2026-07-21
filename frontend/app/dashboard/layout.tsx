@@ -1,84 +1,20 @@
 "use client";
 
-
 import React from "react";
-
-import ProtectedRoute 
-from "@/components/auth/ProtectedRoute";
-
-import DashboardSidebar
-from "@/components/dashboard/DashboardSidebar";
-
-
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export default function DashboardLayout({
-
-children,
-
-}:{
-
-children:React.ReactNode;
-
-}){
-
-
-return (
-
-
-<ProtectedRoute>
-
-
-<div
-
-className="
-min-h-screen
-bg-gray-50
-flex
-"
-
->
-
-
-
-{/* Sidebar */}
-
-<DashboardSidebar />
-
-
-
-
-
-{/* Main Content */}
-
-<main
-
-className="
-flex-1
-min-h-screen
-p-4
-md:p-8
-overflow-hidden
-"
-
->
-
-
-{children}
-
-
-</main>
-
-
-
-
-
-</div>
-
-
-</ProtectedRoute>
-
-
-);
-
-
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ProtectedRoute>
+      <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans py-6 px-4 sm:px-6">
+        <main className="max-w-2xl mx-auto w-full">
+          {children}
+        </main>
+      </div>
+    </ProtectedRoute>
+  );
 }

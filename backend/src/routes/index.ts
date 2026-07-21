@@ -31,6 +31,8 @@ import dashboardRoutes from "./dashboard.routes";
 
 import uploadRoutes from "./upload.routes";
 
+import notificationRoutes from "./notification.routes";
+
 
 
 const router = Router();
@@ -162,9 +164,10 @@ router.use(
   dashboardRoutes
 );
 
-
-
-
+router.use(
+  "/notifications",
+  notificationRoutes
+);
 
 // ===============================
 // UPLOAD
