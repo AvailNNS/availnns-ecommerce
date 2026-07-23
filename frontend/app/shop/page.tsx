@@ -5,6 +5,7 @@ import {
   useState,
 } from "react";
 
+
 import {
   SlidersHorizontal,
   Filter,
@@ -12,13 +13,14 @@ import {
 
 
 import {
-  getProducts
-} from "@/services/product.service";
+  useAppDispatch,
+  useAppSelector,
+} from "@/hooks/redux";
 
 
 import {
-  Product
-} from "@/types/product";
+  fetchProducts,
+} from "@/store/slices/productSlice";
 
 
 import ProductCard from "@/components/product/ProductCard";
@@ -27,86 +29,98 @@ import ShopSidebar from "@/components/shop/ShopSidebar";
 
 
 
+
 export default function ShopPage(){
 
 
-const [products,setProducts]=useState<Product[]>([]);
+const dispatch =
+useAppDispatch();
 
-const [loading,setLoading]=useState(true);
 
-const [sort,setSort]=useState("default");
 
-const [filterOpen,setFilterOpen]=useState(false);
+// ===============================
+// REDUX PRODUCTS
+// ===============================
+
+const products =
+useAppSelector(
+(state)=>state.products.products || []
+);
+
+
+
+const loading =
+useAppSelector(
+(state)=>state.products.loading
+);
+
+
+
+
+// ===============================
+// LOCAL STATES
+// ===============================
+
+
+const [sort,setSort] =
+useState("default");
+
+
+const [filterOpen,setFilterOpen] =
+useState(false);
 
 
 
 // FILTER STATES
 
-const [category,setCategory]=useState("all");
-
-const [minPrice,setMinPrice]=useState("");
-
-const [maxPrice,setMaxPrice]=useState("");
-
-const [rating,setRating]=useState(0);
-
-const [stockOnly,setStockOnly]=useState(false);
+const [category,setCategory] =
+useState("all");
 
 
+const [minPrice,setMinPrice] =
+useState("");
+
+
+const [maxPrice,setMaxPrice] =
+useState("");
+
+
+const [rating,setRating] =
+useState(0);
+
+
+const [stockOnly,setStockOnly] =
+useState(false);
 
 
 
+
+// ===============================
+// FETCH PRODUCTS
+// ===============================
 
 
 useEffect(()=>{
 
 
-const fetchProducts=async()=>{
+dispatch(
+fetchProducts()
+);
 
 
-try{
-
-
-const data =
-await getProducts();
-
-
-setProducts(data || []);
-
-
-
-}catch(error){
-
-
-console.log(error);
-
-
-}finally{
-
-
-setLoading(false);
-
-
-}
-
-
-};
-
-
-fetchProducts();
-
-
-},[]);
+},[dispatch]);
 
 
 
 
 
-
-
+// ===============================
+// CLEAR FILTER
+// ===============================
 
 
 const clearFilter=()=>{
+
 
 setCategory("all");
 
@@ -118,6 +132,7 @@ setRating(0);
 
 setStockOnly(false);
 
+
 };
 
 
@@ -125,45 +140,70 @@ setStockOnly(false);
 
 
 
-
+// ===============================
+// FILTER
+// ===============================
 
 
 const filteredProducts =
+
 products.filter((product)=>{
 
 
 const categoryMatch =
+
 category==="all"
+
 ||
+
 (
 typeof product.category==="object"
+
 &&
-product.category.name===category
+
+product.category?.name===category
+
 );
 
 
 
+
 const priceMatch =
+
 (!minPrice ||
+
 product.price >= Number(minPrice))
+
 &&
+
 (!maxPrice ||
+
 product.price <= Number(maxPrice));
 
 
 
 
+
 const ratingMatch =
+
 !rating
+
 ||
+
 (product.rating || 0)>=rating;
 
 
 
+
+
 const stockMatch =
+
 !stockOnly
+
 ||
+
 product.stock>0;
+
 
 
 
@@ -171,11 +211,17 @@ product.stock>0;
 return (
 
 categoryMatch
+
 &&
+
 priceMatch
+
 &&
+
 ratingMatch
+
 &&
+
 stockMatch
 
 );
@@ -191,7 +237,13 @@ stockMatch
 
 
 
+// ===============================
+// SORT
+// ===============================
+
+
 const sortedProducts =
+
 [...filteredProducts].sort((a,b)=>{
 
 
@@ -202,11 +254,13 @@ return a.price-b.price;
 }
 
 
+
 if(sort==="high"){
 
 return b.price-a.price;
 
 }
+
 
 
 if(sort==="rating"){
@@ -220,6 +274,7 @@ return (
 }
 
 
+
 return 0;
 
 
@@ -231,24 +286,29 @@ return 0;
 
 
 
-
-
 return (
 
-<main className="
+
+<main
+
+className="
 min-h-screen
 bg-gray-50
 py-10
-">
+"
+
+>
 
 
-<div className="
+<div
+
+className="
 mx-auto
 max-w-7xl
 px-6
-">
+"
 
-
+>
 
 
 
@@ -257,7 +317,9 @@ px-6
 {/* HEADER */}
 
 
-<div className="
+<div
+
+className="
 mb-8
 flex
 flex-col
@@ -265,26 +327,36 @@ gap-5
 md:flex-row
 md:items-center
 md:justify-between
-">
+"
+
+>
 
 
 <div>
 
 
-<h1 className="
+<h1
+
+className="
 text-4xl
 font-bold
-">
+"
+
+>
 
 Shop Products
 
 </h1>
 
 
-<p className="
+<p
+
+className="
 mt-2
 text-gray-500
-">
+"
+
+>
 
 {sortedProducts.length}
 Products Found
@@ -300,16 +372,21 @@ Products Found
 
 
 
-<div className="
+<div
+
+className="
 flex
 gap-3
-">
+"
 
+>
 
 
 <button
 
-onClick={()=>setFilterOpen(true)}
+onClick={()=>
+setFilterOpen(true)
+}
 
 className="
 flex
@@ -336,9 +413,9 @@ Filter
 
 
 
+<div
 
-
-<div className="
+className="
 flex
 items-center
 gap-3
@@ -347,11 +424,12 @@ bg-white
 px-4
 py-3
 shadow
-">
+"
+
+>
 
 
 <SlidersHorizontal size={18}/>
-
 
 
 <select
@@ -418,13 +496,18 @@ Top Rated
 
 
 
-{/* MAIN */}
+{/* MAIN GRID */}
 
-<div className="
+
+<div
+
+className="
 grid
 gap-8
 lg:grid-cols-4
-">
+"
+
+>
 
 
 
@@ -432,15 +515,17 @@ lg:grid-cols-4
 
 
 
+{/* SIDEBAR */}
 
 
-{/* DESKTOP SIDEBAR */}
+<div
 
-
-<div className="
+className="
 hidden
 lg:block
-">
+"
+
+>
 
 
 <ShopSidebar
@@ -487,33 +572,39 @@ clearFilter={clearFilter}
 {/* PRODUCTS */}
 
 
-<div className="
+<div
+
+className="
 lg:col-span-3
-">
+"
 
-
+>
 
 
 
 
 
 {
-
 loading &&
 
-<div className="
+
+<div
+
+className="
 grid
 grid-cols-2
 gap-5
 sm:grid-cols-3
 xl:grid-cols-4
-">
+"
+
+>
 
 
 {
-
 Array.from({
 length:8
+
 }).map((_,i)=>(
 
 
@@ -549,12 +640,14 @@ animate-pulse
 
 
 {
-
 !loading &&
+
 sortedProducts.length===0 &&
 
 
-<div className="
+<div
+
+className="
 rounded-3xl
 bg-white
 p-10
@@ -563,10 +656,15 @@ text-center
 
 >
 
-<h2 className="
+
+<h2
+
+className="
 text-xl
 font-bold
-">
+"
+
+>
 
 No products found
 
@@ -596,7 +694,6 @@ Clear Filter
 
 </div>
 
-
 }
 
 
@@ -606,24 +703,26 @@ Clear Filter
 
 
 
-
 {
-
 !loading &&
+
 sortedProducts.length>0 &&
 
 
-<div className="
+<div
+
+className="
 grid
 grid-cols-2
 gap-5
 sm:grid-cols-3
 xl:grid-cols-4
-">
+"
+
+>
 
 
 {
-
 sortedProducts.map(product=>(
 
 
@@ -638,17 +737,16 @@ product={product}
 
 ))
 
-
 }
 
 
 </div>
 
-
 }
 
 
 
+</div>
 
 
 </div>
@@ -659,27 +757,26 @@ product={product}
 
 
 
-</div>
+
+{/* MOBILE SIDEBAR */}
 
 
+<div
 
+className="
+lg:hidden
+"
 
-
-
-
-
-
-{/* MOBILE ONLY SIDEBAR */}
-
-
-<div className="lg:hidden">
+>
 
 
 <ShopSidebar
 
 open={filterOpen}
 
-onClose={()=>setFilterOpen(false)}
+onClose={()=>
+setFilterOpen(false)
+}
 
 category={category}
 
@@ -711,12 +808,11 @@ clearFilter={clearFilter}
 
 
 
-
-
-
 </div>
 
+
 </main>
+
 
 );
 

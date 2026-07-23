@@ -1,15 +1,16 @@
 import api from "./api";
 
+
 // =========================
 // LOGIN
 // =========================
 
 export const loginUser = async (
-  data: {
-    email: string;
-    password: string;
+  data:{
+    email:string;
+    password:string;
   }
-) => {
+)=>{
 
   const res = await api.post(
     "/auth/login",
@@ -20,17 +21,19 @@ export const loginUser = async (
 
 };
 
+
 // =========================
 // REGISTER
 // =========================
 
 export const registerUser = async (
-  data: {
-    name: string;
-    email: string;
-    password: string;
+  data:{
+    name:string;
+    email:string;
+    phone:string;
+    password:string;
   }
-) => {
+)=>{
 
   const res = await api.post(
     "/auth/register",
@@ -41,16 +44,19 @@ export const registerUser = async (
 
 };
 
+
 // =========================
 // GET CURRENT USER
 // =========================
 
-export const getMe = async () => {
+export const getMe = async()=>{
 
   const res = await api.get(
     "/auth/me"
   );
 
-  return res.data;
+  // শুধু user return করবে
+
+  return res.data.user;
 
 };

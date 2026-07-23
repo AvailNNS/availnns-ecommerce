@@ -6,6 +6,7 @@ import Cart from "../models/Cart";
 import Product from "../models/Product";
 import Coupon from "../models/Coupon";
 import DeliveryZone from "../models/DeliveryZone";
+import { sendOrderStatusEmail } from "../services/notification.service";
 
 // =====================================================
 // CREATE ORDER
@@ -342,6 +343,31 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
     }
 
     await order.save();
+
+
+// ===============================
+// SEND ORDER STATUS EMAIL
+// ===============================
+
+const populatedOrder =
+await Order.findById(order._id)
+.populate(
+  "user",
+  "name email phone"
+);
+
+
+if(
+  populatedOrder &&
+  populatedOrder.user
+){
+
+  await sendOrderStatusEmail(
+    populatedOrder.user,
+    populatedOrder
+  );
+
+}
 
     res.status(200).json({
       success: true,

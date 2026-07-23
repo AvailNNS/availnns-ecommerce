@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+
 import {
   initiatePayment,
   paymentSuccess,
@@ -11,10 +12,15 @@ import {
 import authMiddleware from "../middleware/auth.middleware";
 
 
+
 const router = Router();
 
+
+
+
+
 // ===============================
-// INITIATE SSL PAYMENT
+// INITIATE PAYMENT
 // ===============================
 
 router.post(
@@ -22,6 +28,13 @@ router.post(
   authMiddleware,
   initiatePayment
 );
+
+
+
+
+
+
+
 
 // ===============================
 // PAYMENT SUCCESS CALLBACK
@@ -32,6 +45,13 @@ router.post(
   paymentSuccess
 );
 
+
+
+
+
+
+
+
 // ===============================
 // PAYMENT FAILED CALLBACK
 // ===============================
@@ -41,6 +61,13 @@ router.post(
   paymentFail
 );
 
+
+
+
+
+
+
+
 // ===============================
 // PAYMENT CANCEL CALLBACK
 // ===============================
@@ -49,5 +76,11 @@ router.post(
   "/cancel",
   paymentCancel
 );
+
+
+
+
+
+
 
 export default router;

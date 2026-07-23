@@ -21,6 +21,7 @@ import {
   Store,
   X,
   MapPinned,
+  Bell, // নোটিফিকেশন আইকন ইমপোর্ট করা হলো
 } from "lucide-react";
 
 
@@ -72,6 +73,13 @@ icon:TicketPercent,
   name:"Delivery Zones",
   href:"/admin/delivery-zones",
   icon:MapPinned,
+},
+
+// নোটিফিকেশন মেনু আইটেম যোগ করা হলো
+{
+  name: "Notifications",
+  href: "/admin/notifications",
+  icon: Bell,
 },
 
 {

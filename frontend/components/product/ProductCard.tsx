@@ -156,15 +156,17 @@ Math.round(
 
 
 
-const increaseCart = async()=>{
+const increaseCart = async(e: React.MouseEvent)=>{
 
+e.preventDefault();
+e.stopPropagation();
 
 if(quantity >= product.stock)
 return;
 
-
+// পুরো product অবজেক্ট পাস করা হলো যাতে গেস্ট ইউজারের ক্ষেত্রেও ছবি ও স্টক ঠিক থাকে
 await addItem(
-product._id,
+product,
 1
 );
 
@@ -177,8 +179,10 @@ product._id,
 
 
 
-const decreaseCart = async()=>{
+const decreaseCart = async(e: React.MouseEvent)=>{
 
+e.preventDefault();
+e.stopPropagation();
 
 if(quantity<=1){
 
@@ -302,6 +306,7 @@ py-1
 text-xs
 font-bold
 text-white
+pointer-events-none
 "
 
 >
@@ -333,6 +338,7 @@ px-3
 py-1
 text-xs
 text-white
+pointer-events-none
 "
 
 >
@@ -349,8 +355,11 @@ Best Seller
 
 <button
 
-onClick={()=>{
+type="button"
+onClick={(e)=>{
 
+e.preventDefault();
+e.stopPropagation();
 
 if(wish){
 
@@ -390,6 +399,8 @@ bg-white
 p-3
 shadow-lg
 hover:scale-110
+z-20
+cursor-pointer
 "
 
 >
@@ -421,6 +432,12 @@ wish
 
 <button
 
+type="button"
+onClick={(e)=>{
+e.preventDefault();
+e.stopPropagation();
+}}
+
 className="
 absolute
 bottom-4
@@ -437,6 +454,8 @@ shadow
 opacity-0
 transition
 group-hover:opacity-100
+z-20
+cursor-pointer
 "
 
 >
@@ -461,6 +480,7 @@ className="
 absolute
 bottom-4
 right-4
+z-20
 "
 
 >
@@ -473,6 +493,7 @@ quantity===0 ?
 
 <button
 
+type="button"
 disabled={
 product.stock===0
 }
@@ -490,13 +511,14 @@ rounded-full
 shadow-xl
 transition
 hover:scale-110
+cursor-pointer
 
 ${
 product.stock===0
 
 ?
 
-"bg-gray-400"
+"bg-gray-400 cursor-not-allowed"
 
 :
 
@@ -535,8 +557,9 @@ text-white
 
 <button
 
+type="button"
 onClick={decreaseCart}
-
+className="cursor-pointer"
 >
 
 <Minus size={16}/>
@@ -564,12 +587,13 @@ font-bold
 
 <button
 
+type="button"
 disabled={
 quantity>=product.stock
 }
 
 onClick={increaseCart}
-
+className="cursor-pointer"
 >
 
 <Plus size={16}/>

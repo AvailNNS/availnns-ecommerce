@@ -14,6 +14,7 @@ import {
   Plus,
   ListOrdered,
   Tags,
+  Bell, // নোটিফিকেশন আইকন ইমপোর্ট করা হলো
 } from "lucide-react";
 
 import useAdminAuth from "@/hooks/useAdminAuth";
@@ -92,7 +93,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* QUICK ACTION */}
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-4">
         <Link href="/admin/products/add" className="flex items-center gap-3 rounded-3xl bg-black p-5 text-white transition hover:scale-[1.02]">
           <Plus /> Add Product
         </Link>
@@ -101,6 +102,10 @@ export default function AdminDashboardPage() {
         </Link>
         <Link href="/admin/categories" className="flex items-center gap-3 rounded-3xl border bg-white p-5 hover:shadow-lg">
           <Tags /> Categories
+        </Link>
+        {/* নোটিফিকেশন পাঠানোর শর্টকাট বাটন */}
+        <Link href="/admin/notifications" className="flex items-center gap-3 rounded-3xl border bg-white p-5 hover:shadow-lg text-blue-600 font-semibold">
+          <Bell /> Notifications
         </Link>
       </div>
 

@@ -247,3 +247,226 @@ export const clearCart = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
+
+// ===============================
+// MERGE GUEST CART
+// ===============================
+export const mergeCart = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+
+  try {
+
+    const userId =
+      (req as any).user.id;
+
+
+    const { items } = req.body;
+
+
+    if (
+      !items ||
+      items.length === 0
+    ) {
+
+      res.status(200).json({
+
+        success:true,
+
+        message:"No guest cart items"
+
+      });
+
+      return;
+
+    }
+
+
+
+
+    let cart =
+      await Cart.findOne({
+        user:userId
+      });
+
+
+
+    if(!cart){
+
+      cart =
+      await Cart.create({
+
+        user:userId,
+
+        items:[],
+
+        total:0,
+
+      });
+
+    }
+
+
+
+
+
+
+    for(
+      const guestItem of items
+    ){
+
+
+      const product =
+      await Product.findById(
+        guestItem.product
+      );
+
+
+      if(!product){
+        continue;
+      }
+
+
+
+      const price =
+      product.discountPrice &&
+      product.discountPrice > 0
+
+      ?
+
+      product.discountPrice
+
+      :
+
+      product.price;
+
+
+
+
+
+
+      const existingItem:any =
+      cart.items.find(
+
+        (item:any)=>
+
+        String(item.product)
+        ===
+        String(guestItem.product)
+
+      );
+
+
+
+
+
+      if(existingItem){
+
+
+        existingItem.quantity +=
+        Number(guestItem.quantity || 1);
+
+
+        existingItem.price =
+        price;
+
+
+      }
+
+      else{
+
+
+        cart.items.push({
+
+          product:
+          product._id,
+
+          quantity:
+          Number(
+            guestItem.quantity || 1
+          ),
+
+          price,
+
+        } as any);
+
+
+      }
+
+
+    }
+
+
+
+
+
+    cart.total =
+    cart.items.reduce(
+
+      (
+        sum:number,
+        item:any
+      ) =>
+
+      sum +
+      item.price *
+      item.quantity
+
+      ,
+
+      0
+
+    );
+
+
+
+
+
+    await cart.save();
+
+
+    await cart.populate(
+      "items.product"
+    );
+
+
+
+
+    res.status(200).json({
+
+      success:true,
+
+      message:"Guest cart merged",
+
+      cart,
+
+    });
+
+
+
+  }
+
+  catch(error:any){
+
+
+    console.log(
+      "MERGE CART ERROR:",
+      error
+    );
+
+
+    res.status(500).json({
+
+      success:false,
+
+      message:"Merge cart failed",
+
+      error:error.message
+
+    });
+
+
+  }
+
+};

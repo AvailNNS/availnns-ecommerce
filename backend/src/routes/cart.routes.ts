@@ -5,6 +5,8 @@ import {
   addToCart,
   updateCartItem,
   removeCartItem,
+  clearCart,
+  mergeCart,
 } from "../controllers/cart.controller";
 
 import authMiddleware from "../middleware/auth.middleware";
@@ -13,7 +15,11 @@ import authMiddleware from "../middleware/auth.middleware";
 const router = Router();
 
 
-// Get User Cart
+
+// =========================
+// GET USER CART
+// =========================
+
 router.get(
   "/",
   authMiddleware,
@@ -21,7 +27,12 @@ router.get(
 );
 
 
-// Add Product
+
+
+// =========================
+// ADD PRODUCT
+// =========================
+
 router.post(
   "/add",
   authMiddleware,
@@ -29,7 +40,12 @@ router.post(
 );
 
 
-// Update Quantity
+
+
+// =========================
+// UPDATE QUANTITY
+// =========================
+
 router.put(
   "/update",
   authMiddleware,
@@ -37,12 +53,44 @@ router.put(
 );
 
 
-// Remove Item
+
+
+// =========================
+// REMOVE ITEM
+// =========================
+
 router.post(
   "/remove",
   authMiddleware,
   removeCartItem
 );
+
+
+
+
+// =========================
+// CLEAR CART
+// =========================
+
+router.delete(
+  "/clear",
+  authMiddleware,
+  clearCart
+);
+
+
+
+
+// =========================
+// MERGE GUEST CART
+// =========================
+
+router.post(
+  "/merge",
+  authMiddleware,
+  mergeCart
+);
+
 
 
 export default router;

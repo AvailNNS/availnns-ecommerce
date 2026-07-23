@@ -2,7 +2,6 @@ import { Router } from "express";
 
 import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
-
 import adminRoutes from "./admin.routes";
 
 import categoryRoutes from "./category.routes";
@@ -10,278 +9,80 @@ import productRoutes from "./product.routes";
 
 import reviewRoutes from "./review.routes";
 import wishlistRoutes from "./wishlist.routes";
-
 import cartRoutes from "./cart.routes";
 
 import orderRoutes from "./order.routes";
-
 import paymentRoutes from "./payment.routes";
-
-import adminOrderRoutes from "./admin.order.routes";
-
-import adminDashboardRoutes from "./admin.dashboard.routes";
-
 import couponRoutes from "./coupon.routes";
 
+import adminOrderRoutes from "./admin.order.routes";
+import adminDashboardRoutes from "./admin.dashboard.routes";
+import adminNotificationRoutes from "./admin.notification.routes";
+
 import settingsRoutes from "./settings.route";
-
 import deliveryZoneRoutes from "./deliveryZone.routes";
-
 import dashboardRoutes from "./dashboard.routes";
-
 import uploadRoutes from "./upload.routes";
-
 import notificationRoutes from "./notification.routes";
 
-
+import phoneOtpRoutes from "./phoneOtp.routes";
 
 const router = Router();
 
-
-
-
-// ===============================
 // AUTH
-// ===============================
+router.use("/auth", authRoutes);
 
-router.use(
-  "/auth",
-  authRoutes
-);
+//PHONE OTP
+router.use("/phone-otp", phoneOtpRoutes);
 
-
-
-
-
-// ===============================
 // USERS
-// ===============================
+router.use("/users", userRoutes);
 
-router.use(
-  "/users",
-  userRoutes
-);
-
-
-
-
-
-// ===============================
 // ADMIN
-// ===============================
+router.use("/admin", adminRoutes);
+router.use("/admin/dashboard", adminDashboardRoutes);
+router.use("/admin/orders", adminOrderRoutes);
+router.use("/admin/notifications", adminNotificationRoutes);
 
-router.use(
-  "/admin",
-  adminRoutes
-);
-
-
-
-
-
-// ===============================
 // SETTINGS
-// ===============================
+router.use("/settings", settingsRoutes);
 
-router.use(
-  "/settings",
-  settingsRoutes
-);
-
-
-
-
-
-// ===============================
 // CATEGORY
-// ===============================
+router.use("/categories", categoryRoutes);
+// যদি admin category CRUD আলাদা middleware সহ দরকার হয়
+router.use("/admin/categories", categoryRoutes);
 
-router.use(
-  "/admin/categories",
-  categoryRoutes
-);
-
-
-router.use(
-  "/categories",
-  categoryRoutes
-);
-
-
-
-
-
-// ===============================
 // PRODUCTS
-// ===============================
+router.use("/products", productRoutes);
+// যদি admin product CRUD আলাদা middleware সহ দরকার হয়
+router.use("/admin/products", productRoutes);
 
-router.use(
-  "/admin/products",
-  productRoutes
-);
-
-
-router.use(
-  "/products",
-  productRoutes
-);
-
-
-
-
-
-// ===============================
 // CUSTOMER
-// ===============================
+router.use("/reviews", reviewRoutes);
+router.use("/wishlist", wishlistRoutes);
+router.use("/cart", cartRoutes);
 
-router.use(
-  "/reviews",
-  reviewRoutes
-);
-
-
-router.use(
-  "/wishlist",
-  wishlistRoutes
-);
-
-
-router.use(
-  "/cart",
-  cartRoutes
-);
-
-
-
-
-
-// ===============================
 // USER DASHBOARD
-// ===============================
+router.use("/dashboard", dashboardRoutes);
+router.use("/notifications", notificationRoutes);
 
-router.use(
-  "/dashboard",
-  dashboardRoutes
-);
+// ORDERS & PAYMENTS
+router.use("/orders", orderRoutes);
+router.use("/payments", paymentRoutes);
+router.use("/coupons", couponRoutes);
 
-router.use(
-  "/notifications",
-  notificationRoutes
-);
+// DELIVERY
+router.use("/delivery-zones", deliveryZoneRoutes);
 
-// ===============================
 // UPLOAD
-// ===============================
+router.use("/upload", uploadRoutes);
 
-router.use(
-  "/upload",
-  uploadRoutes
-);
-
-
-
-
-
-// ===============================
-// ORDERS
-// ===============================
-
-router.use(
-  "/orders",
-  orderRoutes
-);
-
-
-
-
-
-// ===============================
-// COUPON
-// ===============================
-
-router.use(
-  "/coupons",
-  couponRoutes
-);
-
-
-
-
-
-// ===============================
-// PAYMENT
-// ===============================
-
-router.use(
-  "/payments",
-  paymentRoutes
-);
-
-
-
-
-
-// ===============================
-// ADMIN DASHBOARD
-// ===============================
-
-router.use(
-  "/admin/dashboard",
-  adminDashboardRoutes
-);
-
-
-
-
-
-// ===============================
-// DELIVERY ZONES
-// ===============================
-
-router.use(
-  "/delivery-zones",
-  deliveryZoneRoutes
-);
-
-
-
-
-
-// ===============================
-// ADMIN ORDERS
-// ===============================
-
-router.use(
-  "/admin/orders",
-  adminOrderRoutes
-);
-
-
-
-
-
-// ===============================
 // API CHECK
-// ===============================
-
-router.get(
-  "/",
-  (_req, res) => {
-
-
-    res.json({
-
-      success:true,
-
-      message:
-      "AvailNNS API v1 🚀",
-
-    });
-
-
-  }
-);
-
-
+router.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "AvailNNS API v1 🚀",
+  });
+});
 
 export default router;

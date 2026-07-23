@@ -1,15 +1,17 @@
 "use client";
 
+
 import {
   useEffect,
   useMemo,
   useState,
-  useTransition,
 } from "react";
+
 
 import {
   useRouter,
 } from "next/navigation";
+
 
 import {
   Loader2,
@@ -17,15 +19,6 @@ import {
 
 
 import api from "@/services/api";
-
-import {
-  createOrder,
-} from "@/services/order.service";
-
-
-import {
-  initiatePayment,
-} from "@/services/payment.service";
 
 
 import useCart from "@/hooks/useCart";
@@ -36,14 +29,12 @@ import {
 } from "@/context/CurrencyContext";
 
 
-
 import CheckoutHeader from "@/components/checkout/CheckoutHeader";
+
 import CheckoutStepper from "@/components/checkout/CheckoutStepper";
+
 import ShippingForm from "@/components/checkout/ShippingForm";
-import PaymentMethods from "@/components/checkout/PaymentMethods";
-import CouponBox from "@/components/checkout/CouponBox";
-import OrderSummary from "@/components/checkout/OrderSummary";
-import SecureCheckout from "@/components/checkout/SecureCheckout";
+
 import LocationPicker from "@/components/checkout/LocationPicker";
 
 
@@ -55,17 +46,23 @@ import {
 
 
 
+
+
 export default function CheckoutPage(){
 
 
 const router = useRouter();
 
 
+
+
+
 const {
  cart,
- clearCart,
  loading:cartLoading
 }=useCart();
+
+
 
 
 
@@ -75,15 +72,10 @@ const {
 
 
 
-const [
- isPending,
- startTransition
-]=useTransition();
 
 
 
-const items =
-useMemo(
+const items = useMemo(
 ()=>cart?.items || [],
 [cart]
 );
@@ -91,10 +83,6 @@ useMemo(
 
 
 
-
-// ============================
-// STATES
-// ============================
 
 
 const [
@@ -105,9 +93,28 @@ const [
 
 
 const [
- loading,
- setLoading
-]=useState(false);
+ userLoading,
+ setUserLoading
+]=useState(true);
+
+
+
+
+const [
+ zones,
+ setZones
+]=useState<any[]>([]);
+
+
+
+
+const [
+ selectedZone,
+ setSelectedZone
+]=useState("");
+
+
+
 
 
 
@@ -117,50 +124,6 @@ const [
 ]=useState("");
 
 
-
-const [
- coupon,
- setCoupon
-]=useState("");
-
-
-
-const [
- discount,
- setDiscount
-]=useState(0);
-
-
-
-const [
- applied,
- setApplied
-]=useState(false);
-
-
-
-const [
- couponError,
- setCouponError
-]=useState("");
-
-
-
-
-
-// DELIVERY ZONE
-
-const [
- zones,
- setZones
-]=useState<any[]>([]);
-
-
-
-const [
- selectedZone,
- setSelectedZone
-]=useState("");
 
 
 
@@ -176,12 +139,12 @@ name:"",
 
 phone:"",
 
-address:"",
-
 country:"Bangladesh",
 
 
+
 location:{
+
 
 formattedAddress:"",
 
@@ -199,79 +162,42 @@ longitude:"",
 
 googleMapLink:"",
 
-},
 
-
-paymentMethod:"COD",
-
-transactionId:"",
-
+}
 
 });
 
-
-
-
-
-
-// ============================
-// LOAD DELIVERY ZONES
-// ============================
+  
+// =====================
+// LOAD USER
+// =====================
 
 
 useEffect(()=>{
 
 
-const loadZones=async()=>{
+const loadUser = async()=>{
 
 
 try{
 
 
-const data =
-await getDeliveryZones();
+const token =
+localStorage.getItem("token");
 
 
 
-setZones(
-data.filter(
-(z:any)=>z.active
-)
+if(!token){
+
+router.replace(
+"/login?redirect=/checkout"
 );
 
-
-
-}catch(error){
-
-console.log(error);
+return;
 
 }
 
 
-};
-
-
-loadZones();
-
-
-},[]);
-
-
-
-
-
-// ============================
-// LOAD USER
-// ============================
-
-
-useEffect(()=>{
-
-
-const loadUser=async()=>{
-
-
-try{
 
 
 const res =
@@ -287,23 +213,119 @@ res.data.user
 
 
 
-}catch(error){
+}
 
-console.log(error);
+catch(error){
+
+
+console.log(
+"USER ERROR",
+error
+);
+
+
+
+router.replace(
+"/login?redirect=/login"
+);
+
+
 
 }
+
+finally{
+
+
+setUserLoading(false);
+
+
+}
+
 
 
 };
 
 
+
 loadUser();
+
+
+
+},[router]);
+
+
+
+
+
+
+
+
+
+// =====================
+// LOAD DELIVERY ZONE
+// =====================
+
+
+useEffect(()=>{
+
+
+const loadZones = async()=>{
+
+
+try{
+
+
+const data =
+await getDeliveryZones();
+
+
+
+setZones(
+
+data.filter(
+(z:any)=>z.active
+)
+
+);
+
+
+
+}
+
+catch(error){
+
+
+console.log(
+"ZONE ERROR",
+error
+);
+
+
+}
+
+
+
+};
+
+
+
+loadZones();
+
 
 
 },[]);
 
 
 
+
+
+
+
+
+
+// =====================
+// AUTO FILL USER
+// =====================
 
 
 useEffect(()=>{
@@ -317,15 +339,20 @@ setForm(prev=>({
 ...prev,
 
 
-name:user.name || "",
+name:
+user.name || "",
 
-phone:user.phone || "",
+
+phone:
+user.phone || "",
+
 
 
 }));
 
 
 }
+
 
 
 },[user]);
@@ -335,87 +362,22 @@ phone:user.phone || "",
 
 
 
-// ============================
-// PRICE
-// ============================
-
-
-const subtotal = useMemo(()=>{
-
-
-return items.reduce(
-
-(sum:number,item:any)=>
-
-sum +
-item.price *
-item.quantity,
-
-
-0
-
-);
 
 
 
-},[items]);
-
-
-
-
-
-
-const shipping = useMemo(()=>{
-
-
-const zone =
-zones.find(
-(z:any)=>
-z._id === selectedZone
-);
-
-
-
-return zone?.deliveryFee || 0;
-
-
-
-},[
-zones,
-selectedZone
-]);
-
-
-
-
-
-const tax =
-subtotal * 0.05;
-
-
-
-const total =
-Math.max(
-
-0,
-
-subtotal +
-shipping +
-tax -
-discount
-
-);
-
-// ============================
-// INPUT HANDLER
-// ============================
+// =====================
+// INPUT CHANGE
+// =====================
 
 
 const handleChange = (
-e:React.ChangeEvent<
+
+e:
+React.ChangeEvent<
 HTMLInputElement |
 HTMLTextAreaElement
 >
+
 )=>{
 
 
@@ -423,37 +385,15 @@ setForm(prev=>({
 
 ...prev,
 
+
 [e.target.name]:
+
 e.target.value
 
 
-}));
-
-
-};
-
-
-
-
-
-// ============================
-// PAYMENT SELECT
-// ============================
-
-
-const selectPayment = (
-method:string
-)=>{
-
-
-setForm(prev=>({
-
-...prev,
-
-paymentMethod:method
-
 
 }));
+
 
 
 };
@@ -463,122 +403,33 @@ paymentMethod:method
 
 
 
-// ============================
-// LOCATION
-// ============================
+
+
+
+// =====================
+// LOCATION UPDATE
+// =====================
 
 
 const setLocation = (
+
 data:any
+
 )=>{
 
 
 setForm(prev=>({
 
 ...prev,
+
 
 location:data
 
 
+
 }));
 
 
-};
-
-
-
-
-
-
-
-// ============================
-// APPLY COUPON
-// ============================
-
-
-const applyCoupon = async()=>{
-
-
-if(!coupon.trim()){
-
-
-setCouponError(
-"Please enter coupon code"
-);
-
-
-return;
-
-
-}
-
-
-
-try{
-
-
-setCouponError("");
-
-
-
-const res =
-await api.post(
-
-"/coupons/apply",
-
-{
-
-code:coupon,
-
-amount:subtotal,
-
-}
-
-);
-
-
-
-
-if(res.data.success){
-
-
-setDiscount(
-res.data.discount
-);
-
-
-setApplied(true);
-
-
-
-}
-
-
-
-}catch(error:any){
-
-
-
-setDiscount(0);
-
-
-setApplied(false);
-
-
-
-setCouponError(
-
-error?.response?.data?.message
-||
-"Invalid coupon code"
-
-);
-
-
-
-}
-
-
 
 };
 
@@ -589,84 +440,51 @@ error?.response?.data?.message
 
 
 
-// ============================
-// SUBMIT ORDER
-// ============================
+
+// =====================
+// CONTINUE PAYMENT
+// =====================
 
 
-const handleSubmit = async(
-e:React.FormEvent
-)=>{
+const continuePayment = ()=>{
 
-
-e.preventDefault();
-
-
-
-if(
-loading ||
-isPending
-)
-return;
-
-
-
-setLoading(true);
 
 setError("");
 
 
 
 
-try{
+
+if(!form.name.trim()){
 
 
-if(
-items.length===0
-)
-throw new Error(
-"Your cart is empty"
-);
-
-
-
-if(
-!form.name.trim()
-)
-throw new Error(
+setError(
 "Name required"
 );
 
 
+return;
 
-if(
-!/^01[3-9]\d{8}$/.test(
-form.phone
-)
-)
-throw new Error(
-"Invalid Bangladesh phone number"
+
+}
+
+
+
+
+
+if(!form.phone.trim()){
+
+
+setError(
+"Phone required"
 );
 
 
+return;
 
 
-if(
-!form.address.trim()
-)
-throw new Error(
-"Address required"
-);
+}
 
-
-
-
-if(
-!selectedZone
-)
-throw new Error(
-"Select delivery area"
-);
 
 
 
@@ -674,234 +492,77 @@ throw new Error(
 if(
 !form.location.latitude ||
 !form.location.longitude
-)
-throw new Error(
-"Select map location"
-);
-
-
-
-
-
-
-
-const zone =
-zones.find(
-(z:any)=>
-z._id===selectedZone
-);
-
-
-
-
-
-
-
-const orderData = {
-
-
-
-shippingAddress:{
-
-
-fullName:
-form.name,
-
-
-phone:
-form.phone,
-
-
-address:
-form.address,
-
-
-country:
-"Bangladesh",
-
-
-location:
-form.location,
-
-
-},
-
-
-
-
-deliveryZone:
-selectedZone,
-
-
-
-deliveryZoneName:
-zone?.name,
-
-
-
-deliveryFee:
-shipping,
-
-
-
-
-
-paymentMethod:
-form.paymentMethod,
-
-
-
-transactionId:
-form.transactionId
-?
-form.transactionId.trim()
-:
-null,
-
-
-
-couponCode:
-applied
-?
-coupon
-:null,
-
-
-
-};
-
-
-
-
-
-
-
-
-const res =
-await createOrder(
-orderData
-);
-
-
-
-const orderId =
-res.order._id;
-
-
-
-
-
-
-
-if(
-form.paymentMethod==="CARD" ||
-form.paymentMethod==="SSLCOMMERZ"
 ){
-
-
-
-const payment =
-await initiatePayment({
-
-orderId,
-
-
-amount:
-total,
-
-
-customerName:
-form.name,
-
-
-phone:
-form.phone,
-
-
-address:
-form.location.formattedAddress ||
-form.address,
-
-
-});
-
-
-
-
-
-if(
-payment?.payment?.GatewayPageURL
-){
-
-
-window.location.href =
-payment.payment.GatewayPageURL;
-
-
-}else{
-
-
-throw new Error(
-"Payment failed"
-);
-
-
-}
-
-
-
-
-
-}else{
-
-
-
-await clearCart();
-
-
-
-startTransition(()=>{
-
-
-router.push(
-`/checkout/success?order=${orderId}`
-);
-
-
-});
-
-
-
-}
-
-
-
-
-
-}catch(error:any){
-
 
 
 setError(
+"Please select map location"
+);
 
-error?.message ||
-"Order failed"
+
+return;
+
+
+}
+
+
+
+
+
+if(!selectedZone){
+
+
+setError(
+"Select delivery area"
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+// save checkout data
+
+
+sessionStorage.setItem(
+
+"checkoutData",
+
+JSON.stringify({
+
+...form,
+
+
+deliveryZone:selectedZone
+
+
+})
 
 );
 
 
 
-}finally{
 
 
-setLoading(false);
+
+router.push(
+"/checkout/payment"
+);
 
 
-}
 
 };
 
-if(cartLoading){
+if(
+cartLoading ||
+userLoading
+){
 
 return (
 
@@ -911,7 +572,6 @@ flex
 min-h-screen
 items-center
 justify-center
-bg-white
 "
 >
 
@@ -933,18 +593,22 @@ animate-spin
 
 
 
+
 return (
 
 <main
+
 className="
 min-h-screen
 bg-zinc-50
 py-10
 "
+
 >
 
 
 <div
+
 className="
 mx-auto
 max-w-7xl
@@ -952,66 +616,100 @@ px-4
 sm:px-6
 lg:px-8
 "
+
 >
 
 
 <CheckoutHeader />
 
 
+
+
+
 <CheckoutStepper
-currentStep={3}
+
+currentStep={2}
+
 />
 
 
 
 
 
-<form
 
-onSubmit={handleSubmit}
+
+
+<div
 
 className="
 mt-8
 grid
 gap-8
 lg:grid-cols-3
-items-start
 "
 
 >
 
 
 
-{/* LEFT SIDE */}
+
+
+
+
+
+{/* LEFT */}
 
 <div
+
 className="
 space-y-6
 lg:col-span-2
 "
+
 >
 
 
 
+
+
+
+
+
+
+{/* SHIPPING */}
+
 <ShippingForm
+
 
 form={form}
 
+
 handleChange={handleChange}
+
 
 />
 
 
 
 
+
+
+
+
+
+{/* LOCATION */}
 
 <LocationPicker
 
+
 location={form.location}
+
 
 setLocation={setLocation}
 
+
 />
+
 
 
 
@@ -1022,8 +720,8 @@ setLocation={setLocation}
 
 {/* DELIVERY AREA */}
 
-
 <div
+
 className="
 rounded-3xl
 border
@@ -1031,15 +729,18 @@ bg-white
 p-6
 shadow-sm
 "
+
 >
 
 
 <h2
+
 className="
 mb-4
 text-xl
 font-black
 "
+
 >
 
 Delivery Area
@@ -1049,14 +750,21 @@ Delivery Area
 
 
 
+
+
+
 <select
+
 
 value={selectedZone}
 
+
 onChange={(e)=>
+
 setSelectedZone(
 e.target.value
 )
+
 }
 
 
@@ -1066,10 +774,10 @@ rounded-xl
 border
 p-4
 outline-none
-focus:border-black
 "
 
 >
+
 
 
 <option value="">
@@ -1081,9 +789,12 @@ Select delivery area
 
 
 
+
+
 {
 
 zones.map(
+
 (zone:any)=>(
 
 
@@ -1113,12 +824,13 @@ zone.deliveryFee
 
 )
 
-
 }
 
 
 
+
 </select>
+
 
 
 
@@ -1132,85 +844,7 @@ zone.deliveryFee
 
 
 
-<PaymentMethods
-
-
-paymentMethod={
-form.paymentMethod
-}
-
-
-transactionId={
-form.transactionId
-}
-
-
-selectPayment={
-selectPayment
-}
-
-
-handleChange={
-handleChange
-}
-
-
-/>
-
-
-
-
-
-
-
-
-<CouponBox
-
-
-coupon={
-coupon
-}
-
-
-setCoupon={
-setCoupon
-}
-
-
-discount={
-discount
-}
-
-
-applied={
-applied
-}
-
-
-applyCoupon={
-applyCoupon
-}
-
-
-couponError={
-couponError
-}
-
-
-/>
-
-
-
-
-
-
-
-<SecureCheckout />
-
-
-
-
-
+{/* ERROR */}
 
 {
 
@@ -1224,7 +858,6 @@ border
 border-red-200
 bg-red-50
 p-4
-text-sm
 font-semibold
 text-red-600
 "
@@ -1233,8 +866,8 @@ text-red-600
 
 {error}
 
-
 </div>
+
 
 }
 
@@ -1242,6 +875,48 @@ text-red-600
 
 
 
+
+
+
+
+
+
+
+{/* CONTINUE PAYMENT */}
+
+<button
+
+
+type="button"
+
+
+onClick={continuePayment}
+
+
+className="
+w-full
+rounded-xl
+bg-black
+py-4
+font-bold
+text-white
+transition
+hover:bg-zinc-800
+"
+
+>
+
+Continue Payment
+
+</button>
+
+
+
+
+
+
+
+
 </div>
 
 
@@ -1250,9 +925,9 @@ text-red-600
 
 
 
-{/* RIGHT SIDE */}
 
 
+{/* RIGHT */}
 
 <div
 
@@ -1264,44 +939,87 @@ lg:top-6
 >
 
 
-<OrderSummary
 
 
-items={
-items
+
+<div
+className="
+rounded-3xl
+border
+bg-white
+p-6
+shadow-sm
+"
+>
+
+<h2
+className="
+text-xl
+font-black
+mb-5
+"
+>
+Order Items
+</h2>
+
+
+
+<div
+className="
+space-y-5
+"
+>
+
+
+{
+items.map(
+
+(item:any)=>(
+
+<div
+
+key={item._id}
+
+className="
+flex
+gap-4
+border-b
+pb-4
+last:border-0
+"
+
+>
+
+
+{/* IMAGE */}
+
+<div
+className="
+h-20
+w-20
+overflow-hidden
+rounded-xl
+bg-zinc-100
+"
+>
+
+
+<img
+
+src={
+item.product?.images?.[0] ||
+"/placeholder.png"
 }
 
-
-subtotal={
-subtotal
+alt={
+item.product?.name
 }
 
-
-shipping={
-shipping
-}
-
-
-tax={
-tax
-}
-
-
-discount={
-discount
-}
-
-
-total={
-total
-}
-
-
-loading={
-loading ||
-isPending
-}
-
+className="
+h-full
+w-full
+object-cover
+"
 
 />
 
@@ -1313,7 +1031,141 @@ isPending
 
 
 
-</form>
+
+
+{/* DETAILS */}
+
+<div
+className="
+flex-1
+"
+>
+
+
+<h3
+className="
+font-bold
+line-clamp-2
+"
+>
+
+{
+item.product?.name
+}
+
+</h3>
+
+
+
+
+<div
+className="
+mt-2
+flex
+justify-between
+text-sm
+text-zinc-500
+"
+>
+
+<span>
+
+Qty: {item.quantity}
+
+</span>
+
+
+<span>
+
+{
+formatPrice(
+item.product?.discountPrice ||
+item.product?.price ||
+item.price
+)
+
+}
+
+</span>
+
+
+</div>
+
+
+
+
+
+
+
+
+<p
+className="
+mt-2
+font-black
+"
+>
+
+{
+
+formatPrice(
+
+(
+item.product?.discountPrice ||
+item.product?.price ||
+item.price
+
+)
+
+*
+
+item.quantity
+
+)
+
+}
+
+</p>
+
+
+
+</div>
+
+
+
+
+</div>
+
+
+)
+
+)
+
+}
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
 
 
 

@@ -1,19 +1,24 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import Notification from "../models/notification";
+import { AuthRequest } from "../middleware/auth.middleware";
 
-// Request ইন্টারফেসে user প্রপার্টি না থাকলে কাস্টম টাইপ এক্সটেন্ড করে নিতে পারেন
-interface AuthRequest extends Request {
-  user?: {
-    _id: string;
-  };
-}
-
-// Get all notifications for logged-in user
-export const getNotifications = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+// ===============================
+// GET MY NOTIFICATIONS
+// ===============================
+export const getNotifications = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const userId = req.user?._id;
-    const notifications = await Notification.find({ userId }).sort({ createdAt: -1 });
-    
+    const userId = req.user?.id;
+
+    const notifications = await Notification.find({
+      userId,
+    }).sort({
+      createdAt: -1,
+    });
+
     res.status(200).json({
       success: true,
       notifications,
@@ -23,11 +28,26 @@ export const getNotifications = async (req: AuthRequest, res: Response, next: Ne
   }
 };
 
-// Mark single notification as read
-export const markAsRead = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// ===============================
+// MARK SINGLE AS READ
+// ===============================
+export const markAsRead = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { id } = req.params;
-    await Notification.findByIdAndUpdate(id, { isRead: true });
+
+    await Notification.findOneAndUpdate(
+      {
+        _id: id,
+        userId: req.user?.id,
+      },
+      {
+        isRead: true,
+      }
+    );
 
     res.status(200).json({
       success: true,
@@ -38,11 +58,24 @@ export const markAsRead = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-// Mark all as read
-export const markAllAsRead = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+// ===============================
+// MARK ALL AS READ
+// ===============================
+export const markAllAsRead = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const userId = req.user?._id;
-    await Notification.updateMany({ userId, isRead: false }, { isRead: true });
+    await Notification.updateMany(
+      {
+        userId: req.user?.id,
+        isRead: false,
+      },
+      {
+        isRead: true,
+      }
+    );
 
     res.status(200).json({
       success: true,
@@ -53,11 +86,21 @@ export const markAllAsRead = async (req: AuthRequest, res: Response, next: NextF
   }
 };
 
-// Delete notification
-export const deleteNotification = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+// ===============================
+// DELETE NOTIFICATION
+// ===============================
+export const deleteNotification = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { id } = req.params;
-    await Notification.findByIdAndDelete(id);
+
+    await Notification.findOneAndDelete({
+      _id: id,
+      userId: req.user?.id,
+    });
 
     res.status(200).json({
       success: true,

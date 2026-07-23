@@ -2,15 +2,9 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 
-
 import AppProvider from "@/components/providers/AppProvider";
 
 import MainLayout from "@/components/layout/MainLayout";
-
-import {
-  CurrencyProvider
-} from "@/context/CurrencyContext";
-
 
 
 export const metadata: Metadata = {
@@ -24,7 +18,6 @@ export const metadata: Metadata = {
   },
 
 };
-
 
 
 export default function RootLayout({
@@ -49,17 +42,11 @@ return (
 <AppProvider>
 
 
-<CurrencyProvider>
-
-
 <MainLayout>
 
 {children}
 
 </MainLayout>
-
-
-</CurrencyProvider>
 
 
 </AppProvider>
@@ -71,6 +58,5 @@ return (
 </html>
 
 );
-
 
 }

@@ -31,7 +31,7 @@ type CartContextType = {
 
   addItem:
   (
-    productId:string,
+    product:any,
     quantity?:number
   )=>Promise<void>;
 
@@ -80,9 +80,7 @@ items:[]
 });
 
 
-
 const [loading,setLoading]=useState(true);
-
 
 
 const [cartLoading,setCartLoading]=useState(false);
@@ -92,14 +90,12 @@ const [cartLoading,setCartLoading]=useState(false);
 
 
 // ==========================
-// SET CART
+// UPDATE CART STATE
 // ==========================
-
 
 const updateCartState=(data:any)=>{
 
-
-const newCart =
+const rawCart =
 data?.cart ||
 data ||
 {
@@ -107,13 +103,40 @@ items:[]
 };
 
 
+const formattedItems = (rawCart.items || []).map((item: any) => {
+
+  const prod = item.product || {};
+
+  return {
+
+    ...item,
+
+    product: typeof prod === "string" ? { _id: prod } : {
+
+      ...prod,
+
+      name: prod.name || "Product",
+
+      images: prod.images || [],
+
+      price: prod.discountPrice || prod.price || item.price || 0,
+
+      stock: prod.stock !== undefined ? prod.stock : 10,
+
+    },
+
+    price: item.price || prod.discountPrice || prod.price || 0
+
+  };
+
+});
+
 
 setCart({
 
-...newCart,
+...rawCart,
 
-items:
-newCart.items || []
+items: formattedItems
 
 });
 
@@ -126,9 +149,51 @@ newCart.items || []
 
 
 // ==========================
-// FETCH CART
+// GUEST SAVE
 // ==========================
 
+const saveGuestCart=(items:any[])=>{
+
+localStorage.setItem(
+"guestCart",
+JSON.stringify(items)
+);
+
+};
+
+
+
+
+// ==========================
+// GET GUEST CART
+// ==========================
+
+const getGuestCart=()=>{
+
+
+return JSON.parse(
+
+localStorage.getItem(
+"guestCart"
+)
+||
+"[]"
+
+);
+
+
+};
+
+
+
+
+
+
+
+
+// ==========================
+// LOAD CART
+// ==========================
 
 const refreshCart=async()=>{
 
@@ -136,11 +201,37 @@ const refreshCart=async()=>{
 try{
 
 
+const token =
+localStorage.getItem("token");
+
+
+
+if(token){
+
+
 const data =
 await getCart();
 
 
 updateCartState(data);
+
+
+
+}
+
+else{
+
+
+const items =
+getGuestCart();
+
+
+
+updateCartState({ items });
+
+
+}
+
 
 
 }
@@ -162,9 +253,7 @@ items:[]
 
 finally{
 
-
 setLoading(false);
-
 
 }
 
@@ -176,33 +265,10 @@ setLoading(false);
 
 
 
-
-// ==========================
-// INITIAL LOAD
-// ==========================
-
-
 useEffect(()=>{
 
 
-const token =
-localStorage.getItem(
-"token"
-);
-
-
-
-if(token){
-
 refreshCart();
-
-}
-else{
-
-setLoading(false);
-
-}
-
 
 
 },[]);
@@ -222,7 +288,7 @@ setLoading(false);
 
 const addItem=async(
 
-productId:string,
+product:any,
 
 quantity:number=1
 
@@ -236,15 +302,104 @@ setCartLoading(true);
 
 
 
+const token =
+localStorage.getItem("token");
+
+const productId = typeof product === "string" ? product : product._id;
+
+
+
+// LOGIN USER
+
+if(token){
+
+
 const data =
 await addCartAPI(
+
 productId,
+
 quantity
+
 );
 
 
 
 updateCartState(data);
+
+
+
+}
+
+
+
+
+
+// GUEST USER
+
+else{
+
+
+const items =
+getGuestCart();
+
+
+
+const exist =
+items.find(
+
+(item:any)=>
+
+(item.product?._id || item.product) === productId
+
+);
+
+
+
+
+if(exist){
+
+
+exist.quantity += quantity;
+
+
+}
+
+else{
+
+
+items.push({
+
+product: typeof product === "object" ? product : {
+  _id: productId,
+  name: "Product",
+  images: [],
+  price: 0,
+  stock: 10,
+},
+
+quantity
+
+
+});
+
+
+}
+
+
+
+
+
+saveGuestCart(items);
+
+
+
+updateCartState({ items });
+
+
+}
+
+
 
 
 
@@ -258,6 +413,7 @@ error
 );
 
 
+
 }
 
 finally{
@@ -269,8 +425,8 @@ setCartLoading(false);
 }
 
 
-};
 
+};
 
 
 
@@ -301,15 +457,71 @@ setCartLoading(true);
 
 
 
+const token =
+localStorage.getItem("token");
+
+
+
+
+if(token){
+
+
 const data =
 await updateCartAPI(
+
 productId,
+
 quantity
+
 );
 
 
 
 updateCartState(data);
+
+
+
+}
+
+else{
+
+
+const items =
+getGuestCart();
+
+
+
+const item =
+items.find(
+
+(i:any)=>
+
+(i.product?._id || i.product) === productId
+
+);
+
+
+
+if(item){
+
+
+item.quantity = quantity;
+
+
+}
+
+
+
+saveGuestCart(items);
+
+
+
+updateCartState({ items });
+
+
+
+}
+
 
 
 
@@ -364,14 +576,48 @@ setCartLoading(true);
 
 
 
+const token =
+localStorage.getItem("token");
+
+
+
+
+
+if(token){
+
+
 const data =
-await removeCartAPI(
-productId
+await removeCartAPI(productId);
+
+
+updateCartState(data);
+
+
+}
+
+else{
+
+
+const items =
+getGuestCart()
+.filter(
+
+(item:any)=>
+
+(item.product?._id || item.product) !== productId
+
 );
 
 
 
-updateCartState(data);
+saveGuestCart(items);
+
+
+
+updateCartState({ items });
+
+
+}
 
 
 
@@ -407,7 +653,7 @@ setCartLoading(false);
 
 
 // ==========================
-// CLEAR
+// CLEAR CART
 // ==========================
 
 
@@ -420,11 +666,32 @@ try{
 setCartLoading(true);
 
 
+
+const token =
+localStorage.getItem("token");
+
+
+
+if(token){
+
+
 await clearCartAPI();
 
 
+}
+
+
+
+localStorage.removeItem(
+"guestCart"
+);
+
+
+
 setCart({
+
 items:[]
+
 });
 
 
@@ -449,7 +716,6 @@ setCartLoading(false);
 }
 
 
-
 };
 
 
@@ -461,9 +727,8 @@ setCartLoading(false);
 
 
 // ==========================
-// TOTAL COUNT
+// TOTAL
 // ==========================
-
 
 const totalItems =
 
@@ -480,7 +745,6 @@ Number(item.quantity || 0)
 ,0)
 
 ||0;
-
 
 
 
@@ -537,9 +801,7 @@ export default function useCartContext(){
 
 
 const context =
-useContext(
-CartContext
-);
+useContext(CartContext);
 
 
 

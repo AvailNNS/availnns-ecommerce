@@ -7,6 +7,10 @@ const api = axios.create({
     "https://effective-telegram-qvvpg7qv66p9h9r79-5000.app.github.dev/api",
 });
 
+// ==================================
+// GET TOKEN
+// ==================================
+
 const getStoredToken = () => {
 
   if (typeof window === "undefined") {
@@ -20,6 +24,11 @@ const getStoredToken = () => {
   );
 
 };
+
+
+// ==================================
+// PUBLIC ROUTES
+// ==================================
 
 const isPublicRequest = (
   url: string = ""
@@ -59,9 +68,10 @@ const isPublicRequest = (
 
 };
 
-// ===============================
+
+// ==================================
 // REQUEST INTERCEPTOR
-// ===============================
+// ==================================
 
 api.interceptors.request.use(
 
@@ -99,14 +109,14 @@ api.interceptors.request.use(
 
 );
 
-// ===============================
+
+// ==================================
 // RESPONSE INTERCEPTOR
-// ===============================
+// ==================================
 
 api.interceptors.response.use(
 
-  (response) =>
-    response,
+  (response) => response,
 
   (error) => {
 
@@ -114,17 +124,38 @@ api.interceptors.response.use(
       error.response?.status === 401
     ) {
 
+      const url =
+        error.config?.url || "";
+
       console.log(
-        "Unauthorized"
+        "Unauthorized:",
+        url
       );
 
-      Cookies.remove(
-        "token"
-      );
+      // শুধুমাত্র user authentication fail হলে logout হবে
 
-      localStorage.removeItem(
-        "token"
-      );
+      if (
+
+        url.includes("/auth/me")
+
+        ||
+
+        url.includes("/users/me")
+
+      ) {
+
+        Cookies.remove(
+          "token",
+          {
+            path: "/",
+          }
+        );
+
+        localStorage.removeItem(
+          "token"
+        );
+
+      }
 
     }
 
@@ -135,5 +166,6 @@ api.interceptors.response.use(
   }
 
 );
+
 
 export default api;
