@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Truck,
-  Tag,
   Sparkles,
 } from "lucide-react";
 import useCart from "@/hooks/useCart";
@@ -15,7 +14,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CartPage() {
   const { cart, loading, totalItems } = useCart();
-  const { formatPrice } = useCurrency(); // কারেন্সি কনটেক্সট থেকে ফর্ম্যাটার আনা হলো
+  const { formatPrice } = useCurrency();
 
   // Loading State
   if (loading) {
@@ -74,9 +73,14 @@ export default function CartPage() {
                 </span>
               </div>
               <div className="space-y-4">
-                {cart.items.map((item: any) => (
-                  <CartItem key={item.product._id} item={item} />
-                ))}
+                {cart.items.map((item: any) => {
+                  const itemId =
+                    item.product?._id?.toString() ||
+                    item.product?.toString() ||
+                    Math.random().toString();
+
+                  return <CartItem key={itemId} item={item} />;
+                })}
               </div>
             </div>
 

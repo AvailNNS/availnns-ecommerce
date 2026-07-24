@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   createContext,
   useContext,
@@ -9,13 +8,11 @@ import {
   ReactNode,
 } from "react";
 
-
 import Cookies from "js-cookie";
 
 import {
   useRouter,
 } from "next/navigation";
-
 
 import {
   loginUser,
@@ -24,11 +21,6 @@ import {
 } from "@/services/auth.service";
 
 
-
-
-// =====================
-// USER TYPE
-// =====================
 
 interface User {
 
@@ -48,89 +40,32 @@ interface User {
 
 
 
-
-
-
-// =====================
-// LOGIN TYPE
-// =====================
-
-interface LoginData {
-
-  email:string;
-
-  password:string;
-
-}
-
-
-
-
-
-
-// =====================
-// REGISTER TYPE
-// =====================
-
-interface RegisterData {
-
-  name:string;
-
-  email:string;
-
-  phone:string;
-
-  password:string;
-
-}
-
-
-
-
-
-
-// =====================
-// CONTEXT TYPE
-// =====================
-
 interface AuthContextType {
 
+  user:User|null;
 
- user:User|null;
+  loading:boolean;
 
-
- loading:boolean;
-
-
-
- login:
- (
-  data:LoginData
- )=>Promise<void>;
+  login:(data:{
+    email:string;
+    password:string;
+  })=>Promise<void>;
 
 
-
- register:
- (
-  data:RegisterData
- )=>Promise<void>;
-
-
-
- logout:
- ()=>void;
+  register:(data:{
+    name:string;
+    email:string;
+    phone:string;
+    password:string;
+  })=>Promise<void>;
 
 
+  logout:()=>void;
 
- refreshUser:
- ()=>Promise<void>;
 
+  refreshUser:()=>Promise<void>;
 
 }
-
-
-
-
 
 
 
@@ -141,51 +76,33 @@ createContext<AuthContextType|null>(null);
 
 
 
-
-
-
-// =====================
-// PROVIDER
-// =====================
-
-
 export function AuthProvider({
-
 children
-
 }:{
-
 children:ReactNode;
-
 }){
-
 
 
 const router =
 useRouter();
 
 
-
-
-const [user,setUser] =
+const [user,setUser]
+=
 useState<User|null>(null);
 
 
-
-const [loading,setLoading] =
+const [loading,setLoading]
+=
 useState(true);
 
 
 
 
 
-
-
-
-// =====================
+// =======================
 // GET CURRENT USER
-// =====================
-
+// =======================
 
 const refreshUser =
 async()=>{
@@ -195,41 +112,27 @@ try{
 
 
 const token =
-
-Cookies.get("token")
-
-||
-
-localStorage.getItem(
-"token"
-);
-
-
+Cookies.get("token");
 
 
 
 if(!token){
 
-
 setUser(null);
 
 return;
-
 
 }
 
 
 
-
-
-
-const res =
+const response =
 await getMe();
 
 
 
 setUser(
-res.user
+response.user || response
 );
 
 
@@ -240,12 +143,15 @@ catch(error){
 
 
 console.log(
-"GET USER ERROR",
+"GET ME ERROR",
 error
 );
 
 
 
+setUser(null);
+
+
 Cookies.remove(
 "token",
 {
@@ -254,14 +160,9 @@ path:"/"
 );
 
 
-
 localStorage.removeItem(
 "token"
 );
-
-
-
-setUser(null);
 
 
 
@@ -277,38 +178,27 @@ setUser(null);
 
 
 
-
-// =====================
+// =======================
 // SAVE TOKEN
-// =====================
+// =======================
 
-const saveToken=(token:string)=>{
+const saveToken =
+(token:string)=>{
 
 
 Cookies.set(
-
 "token",
-
 token,
-
 {
-
 expires:7,
-
 path:"/"
-
 }
-
 );
-
 
 
 localStorage.setItem(
-
 "token",
-
 token
-
 );
 
 
@@ -321,22 +211,16 @@ token
 
 
 
-
-// =====================
+// =======================
 // LOGIN
-// =====================
+// =======================
 
 const login =
-async(
-data:LoginData
-)=>{
+async(data:any)=>{
 
 
 const res =
-await loginUser(
-data
-);
-
+await loginUser(data);
 
 
 
@@ -346,25 +230,15 @@ res.token
 
 
 
-
 setUser(
 res.user
 );
 
 
 
-
-// merge guest cart
-
 window.dispatchEvent(
-
-new Event(
-"cart-login"
-)
-
+new Event("auth-change")
 );
-
-
 
 
 
@@ -384,22 +258,16 @@ router.replace(
 
 
 
-// =====================
+// =======================
 // REGISTER
-// =====================
-
+// =======================
 
 const register =
-async(
-data:RegisterData
-)=>{
+async(data:any)=>{
 
 
 const res =
-await registerUser(
-data
-);
-
+await registerUser(data);
 
 
 
@@ -409,25 +277,15 @@ res.token
 
 
 
-
 setUser(
 res.user
 );
 
 
 
-
-
 window.dispatchEvent(
-
-new Event(
-"cart-login"
-)
-
+new Event("auth-change")
 );
-
-
-
 
 
 
@@ -447,28 +305,19 @@ router.replace(
 
 
 
-// =====================
+// =======================
 // LOGOUT
-// =====================
+// =======================
 
-
-const logout =
-()=>{
+const logout = ()=>{
 
 
 Cookies.remove(
-
 "token",
-
 {
-
 path:"/"
-
 }
-
 );
-
-
 
 
 localStorage.removeItem(
@@ -476,8 +325,13 @@ localStorage.removeItem(
 );
 
 
-
 setUser(null);
+
+
+
+window.dispatchEvent(
+new Event("auth-change")
+);
 
 
 
@@ -497,10 +351,9 @@ router.replace(
 
 
 
-// =====================
-// INIT
-// =====================
-
+// =======================
+// INITIAL LOAD
+// =======================
 
 useEffect(()=>{
 
@@ -515,31 +368,23 @@ try{
 await refreshUser();
 
 
-
 }
-
 finally{
 
 
 setLoading(false);
 
 
-
 }
-
 
 
 };
 
 
-
 init();
 
 
-
 },[]);
-
-
 
 
 
@@ -575,7 +420,6 @@ refreshUser,
 
 </AuthContext.Provider>
 
-
 );
 
 
@@ -587,32 +431,19 @@ refreshUser,
 
 
 
-
-
-// =====================
-// HOOK
-// =====================
-
-
-export const useAuth=()=>{
+export const useAuth = ()=>{
 
 
 const context =
-useContext(
-AuthContext
-);
+useContext(AuthContext);
 
 
 
 if(!context){
 
-
 throw new Error(
-
 "useAuth must be used inside AuthProvider"
-
 );
-
 
 }
 

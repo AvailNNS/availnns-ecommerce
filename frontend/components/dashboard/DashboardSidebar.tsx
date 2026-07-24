@@ -1,83 +1,67 @@
 "use client";
 
-
 import Link from "next/link";
 
-
 import {
-LayoutDashboard,
-Package,
-Heart,
-User,
-MapPin,
-Settings,
-LogOut,
-ShieldCheck
+  LayoutDashboard,
+  Package,
+  Heart,
+  User,
+  MapPin,
+  Settings,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 
-
 import {
-usePathname,
-useRouter
+  usePathname,
 } from "next/navigation";
 
-
 import {
-useAuth
+  useAuth,
 } from "@/context/AuthContext";
-
-
 
 
 
 const menu = [
 
+  {
+    name:"Dashboard",
+    href:"/dashboard",
+    icon:<LayoutDashboard size={20}/>,
+  },
 
-{
-name:"Dashboard",
-href:"/dashboard",
-icon:<LayoutDashboard size={20}/>
-},
+  {
+    name:"My Orders",
+    href:"/dashboard/orders",
+    icon:<Package size={20}/>,
+  },
 
+  {
+    name:"Wishlist",
+    href:"/wishlist",
+    icon:<Heart size={20}/>,
+  },
 
-{
-name:"My Orders",
-href:"/dashboard/orders",
-icon:<Package size={20}/>
-},
+  {
+    name:"Profile",
+    href:"/dashboard/profile",
+    icon:<User size={20}/>,
+  },
 
+  {
+    name:"Address",
+    href:"/dashboard/address",
+    icon:<MapPin size={20}/>,
+  },
 
-{
-name:"Wishlist",
-href:"/wishlist",
-icon:<Heart size={20}/>
-},
-
-
-{
-name:"Profile",
-href:"/dashboard/profile",
-icon:<User size={20}/>
-},
-
-
-{
-name:"Address",
-href:"/dashboard/address",
-icon:<MapPin size={20}/>
-},
-
-
-{
-name:"Settings",
-href:"/dashboard/settings",
-icon:<Settings size={20}/>
-},
-
+  {
+    name:"Settings",
+    href:"/dashboard/settings",
+    icon:<Settings size={20}/>,
+  },
 
 ];
-
-
 
 
 
@@ -90,16 +74,11 @@ const pathname =
 usePathname();
 
 
-const router =
-useRouter();
-
-
 
 const {
-user,
-logout
-}=useAuth();
-
+  user,
+  logout,
+} = useAuth();
 
 
 
@@ -109,26 +88,25 @@ const handleLogout = ()=>{
 
 
 const confirmLogout =
-confirm(
-"Are you sure you want to logout?"
+window.confirm(
+  "Are you sure you want to logout?"
 );
 
 
 
-if(!confirmLogout)
+if(!confirmLogout){
+
 return;
+
+}
 
 
 
 logout();
 
 
-router.push("/login");
-
 
 };
-
-
 
 
 
@@ -153,16 +131,9 @@ p-6
 >
 
 
-
 {/* Logo */}
 
-
-<div
-className="
-mb-8
-"
->
-
+<div className="mb-8">
 
 <h1
 
@@ -177,7 +148,6 @@ tracking-tight
 NOPTRIX
 
 </h1>
-
 
 
 <p
@@ -195,7 +165,6 @@ Customer Dashboard
 </p>
 
 
-
 </div>
 
 
@@ -204,9 +173,7 @@ Customer Dashboard
 
 
 
-
 {/* User Card */}
-
 
 <div
 
@@ -231,7 +198,6 @@ gap-3
 >
 
 
-
 <div
 
 className="
@@ -251,9 +217,7 @@ justify-center
 
 {
 
-
-user?.avatar ?
-
+user?.avatar ? (
 
 <img
 
@@ -269,21 +233,20 @@ object-cover
 
 />
 
+)
 
 :
 
+(
 
 <User size={22}/>
 
+)
 
 }
 
 
-
 </div>
-
-
-
 
 
 
@@ -308,8 +271,6 @@ user?.name || "User"
 </h3>
 
 
-
-
 <div
 
 className="
@@ -332,13 +293,10 @@ Verified
 </div>
 
 
-
 </div>
 
 
-
 </div>
-
 
 
 </div>
@@ -354,7 +312,6 @@ Verified
 {/* Menu */}
 
 
-
 <nav
 
 className="
@@ -367,19 +324,14 @@ flex-1
 
 {
 
-
 menu.map((item)=>(
-
 
 
 <Link
 
-
 key={item.name}
 
-
 href={item.href}
-
 
 
 className={`
@@ -403,7 +355,6 @@ font-medium
 text-sm
 
 
-
 ${
 pathname === item.href
 
@@ -420,7 +371,6 @@ pathname === item.href
 `}
 
 
-
 >
 
 
@@ -434,7 +384,6 @@ pathname === item.href
 </span>
 
 
-
 </Link>
 
 
@@ -442,7 +391,6 @@ pathname === item.href
 
 
 }
-
 
 
 </nav>
@@ -458,12 +406,9 @@ pathname === item.href
 {/* Logout */}
 
 
-
 <button
 
-
 onClick={handleLogout}
-
 
 
 className="
@@ -493,7 +438,6 @@ font-medium
 "
 
 
-
 >
 
 
@@ -503,16 +447,15 @@ font-medium
 Logout
 
 
-
 </button>
-
-
 
 
 
 
 </aside>
 
+
 );
+
 
 }

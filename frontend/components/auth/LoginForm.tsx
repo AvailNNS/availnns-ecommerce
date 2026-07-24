@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-
 import { z } from "zod";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-
 import { toast } from "sonner";
-
 import { useAuth } from "@/context/AuthContext";
 
 const loginSchema = z.object({
@@ -30,7 +24,7 @@ type LoginFormData =
   z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
-
+  const router = useRouter();
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] =
@@ -51,9 +45,7 @@ export default function LoginForm() {
   const onSubmit = async (
     data: LoginFormData
   ) => {
-
     try {
-
       setLoading(true);
 
       await login(data);
@@ -62,19 +54,20 @@ export default function LoginForm() {
         "Login successful"
       );
 
-    } catch (error: any) {
+      // URL থেকে redirect প্যারামিটার ধরুন, না থাকলে /dashboard-এ পাঠান
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get("redirect") || "/dashboard";
 
+      router.replace(redirectTo);
+
+    } catch (error: any) {
       toast.error(
         error?.response?.data?.message ||
           "Login failed"
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   return (
@@ -84,11 +77,8 @@ export default function LoginForm() {
       )}
       className="space-y-5"
     >
-
       {/* Email */}
-
       <div>
-
         <label className="text-sm font-medium">
           Email Address
         </label>
@@ -115,19 +105,15 @@ export default function LoginForm() {
             {errors.email.message}
           </p>
         )}
-
       </div>
 
       {/* Password */}
-
       <div>
-
         <label className="text-sm font-medium">
           Password
         </label>
 
         <div className="relative mt-2">
-
           <input
             type={
               showPassword
@@ -169,7 +155,6 @@ export default function LoginForm() {
               <Eye size={18} />
             )}
           </button>
-
         </div>
 
         {errors.password && (
@@ -180,21 +165,15 @@ export default function LoginForm() {
             }
           </p>
         )}
-
       </div>
 
       {/* Remember + Forgot */}
-
       <div className="flex items-center justify-between">
-
         <label className="flex items-center gap-2 text-sm">
-
           <input
             type="checkbox"
           />
-
           Remember Me
-
         </label>
 
         <Link
@@ -207,11 +186,9 @@ export default function LoginForm() {
         >
           Forgot Password?
         </Link>
-
       </div>
 
       {/* Submit */}
-
       <button
         type="submit"
         disabled={loading}
@@ -241,7 +218,6 @@ export default function LoginForm() {
       </button>
 
       <div className="text-center text-sm">
-
         Don't have an account?
 
         <Link
@@ -254,9 +230,7 @@ export default function LoginForm() {
         >
           Create Account
         </Link>
-
       </div>
-
     </form>
   );
 }
